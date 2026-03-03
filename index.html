@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-title" content="Spend">
 <title>Spend</title>
 <style>
-  :root{--bg:#0F0F10;--card:#1C1C1E;--card2:#242428;--text:#EEEAE4;--muted:#555;--dim:#333;--safe-bottom:env(safe-area-inset-bottom,16px);}
+  :root{--bg:#0F0F10;--card:#1C1C1E;--card2:#242428;--text:#EEEAE4;--muted:#555;--dim:#333;--safe-bottom:env(safe-area-inset-bottom,16px);--safe-top:env(safe-area-inset-top,20px);}
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,'SF Pro Rounded',sans-serif;overflow:hidden;}
   body{display:flex;flex-direction:column;max-width:430px;margin:0 auto;height:100dvh;}
@@ -18,8 +18,8 @@
   .tab{flex:1;padding:10px 0 8px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);cursor:pointer;border:none;background:none;font-family:inherit;transition:color .2s;}
   .tab.active{color:var(--text);}
   .tab-icon{font-size:20px;line-height:1;}
-  #toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);padding:9px 22px;border-radius:100px;font-size:13px;font-weight:500;z-index:999;display:none;white-space:nowrap;backdrop-filter:blur(10px);}
-  #sync-dot{width:8px;height:8px;border-radius:50%;position:fixed;top:18px;right:18px;z-index:100;transition:background .4s;background:#2a2a2a;}
+  #toast{position:fixed;top:calc(var(--safe-top) + 10px);left:50%;transform:translateX(-50%);padding:9px 22px;border-radius:100px;font-size:13px;font-weight:500;z-index:999;display:none;white-space:nowrap;backdrop-filter:blur(10px);}
+  #sync-dot{width:8px;height:8px;border-radius:50%;position:fixed;top:calc(var(--safe-top) + 6px);right:18px;z-index:100;transition:background .4s;background:#2a2a2a;}
   #sync-dot.syncing{background:#F7C948;}
   #sync-dot.ok{background:#6DDC9A;}
   #sync-dot.err{background:#FF6B6B;}
@@ -28,7 +28,7 @@
   #setup-banner.hidden{display:none;}
   .banner-text{flex:1;font-size:13px;color:#F7C948;line-height:1.5;}
   /* ADD */
-  #amt-display{padding:52px 24px 20px;text-align:center;}
+  #amt-display{padding:calc(var(--safe-top) + 32px) 24px 20px;text-align:center;}
   #amt-label{font-size:13px;color:var(--muted);letter-spacing:3px;text-transform:uppercase;margin-bottom:10px;}
   #amt-value{font-size:58px;font-weight:300;letter-spacing:-2px;color:var(--dim);line-height:1;min-height:66px;transition:color .2s;}
   #cats{display:flex;gap:8px;padding:0 16px 18px;overflow-x:auto;scrollbar-width:none;}
@@ -49,7 +49,7 @@
   .view-btn{flex:1;padding:8px 0;border-radius:9px;background:transparent;color:var(--muted);font-size:13px;font-weight:500;border:none;cursor:pointer;font-family:inherit;transition:all .15s;}
   .view-btn.active{background:var(--card2);color:var(--text);}
   .slabel{font-size:11px;color:#444;letter-spacing:3px;text-transform:uppercase;margin-bottom:14px;}
-  .total-block{padding:48px 20px 24px;}
+  .total-block{padding:calc(var(--safe-top) + 28px) 20px 24px;}
   .total-sub{font-size:12px;color:var(--muted);letter-spacing:3px;text-transform:uppercase;margin-bottom:6px;}
   .total-num{font-size:50px;font-weight:300;letter-spacing:-2px;}
   .total-ct{font-size:13px;color:var(--muted);margin-top:4px;}
@@ -77,7 +77,7 @@
   .entry.swiped .del-btn{display:block;}
   .empty{text-align:center;padding:60px 0;color:var(--dim);font-size:14px;}
   /* SETTINGS */
-  .ss{padding:48px 20px 24px;}
+  .ss{padding:calc(var(--safe-top) + 28px) 20px 24px;}
   .sc{background:var(--card);border-radius:16px;overflow:hidden;margin-bottom:24px;}
   .sr{padding:14px 16px;border-bottom:1px solid #242428;display:flex;align-items:center;gap:12px;}
   .sr:last-child{border-bottom:none;}
@@ -169,7 +169,7 @@
 
 <!-- HISTORY -->
 <div id="history-screen" class="screen">
-  <div style="padding:48px 20px 0">
+  <div style="padding:calc(var(--safe-top) + 28px) 20px 0">
     <div class="view-sw">
       <button class="view-btn active" onclick="setView('month',this)">Month</button>
       <button class="view-btn" onclick="setView('year',this)">Year</button>
