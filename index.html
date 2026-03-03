@@ -52,6 +52,37 @@
   #note-input{width:100%;padding:12px 16px;background:var(--card);border-radius:12px;
     border:1px solid var(--card2);color:var(--text);font-size:15px;font-family:inherit;outline:none;display:none;}
   #note-input.open{display:block;}
+  #date-area{padding:0 16px 14px;}
+  #date-btn{width:100%;padding:10px 16px;background:var(--card);border:1px solid var(--card2);
+    border-radius:12px;color:var(--text);font-size:14px;font-family:inherit;cursor:pointer;
+    display:flex;align-items:center;justify-content:space-between;}
+  #date-btn-label{color:var(--text);}
+  #date-btn-reset{font-size:12px;color:var(--muted);background:var(--card2);border:none;
+    font-family:inherit;cursor:pointer;padding:4px 10px;border-radius:6px;}
+
+  /* calendar modal */
+  #cal-modal{display:none;position:fixed;inset:0;background:#000000bb;z-index:200;
+    align-items:flex-end;justify-content:center;}
+  #cal-modal.open{display:flex;}
+  #cal-box{background:#1C1C1E;border-radius:24px 24px 0 0;width:100%;max-width:430px;
+    padding:20px 16px calc(20px + var(--safe-bottom));}
+  #cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+  #cal-month-label{font-size:17px;font-weight:600;}
+  .cal-nav{background:var(--card2);border:none;color:var(--text);font-size:20px;
+    width:36px;height:36px;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+  #cal-dow{display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:8px;}
+  .cal-dow-cell{text-align:center;font-size:11px;color:var(--muted);padding:4px 0;letter-spacing:.5px;}
+  #cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
+  .cal-day{aspect-ratio:1;display:flex;align-items:center;justify-content:center;
+    border-radius:10px;font-size:15px;cursor:pointer;border:none;background:transparent;
+    color:var(--text);font-family:inherit;}
+  .cal-day:active{background:var(--card2);}
+  .cal-day.empty{pointer-events:none;}
+  .cal-day.today{border:1px solid #555;}
+  .cal-day.selected{color:#0F0F10;font-weight:600;}
+  .cal-day.other-month{color:#333;}
+  #cal-confirm{width:100%;padding:14px;border-radius:14px;border:none;font-size:16px;
+    font-weight:600;font-family:inherit;cursor:pointer;margin-top:14px;color:#0F0F10;}
 
   #numpad{padding:0 12px;}
   .num-row{display:flex;gap:8px;margin-bottom:8px;}
@@ -143,6 +174,12 @@
   <div id="note-area">
     <button id="note-toggle" onclick="toggleNote()">✏️ Add a note</button>
     <input id="note-input" type="text" placeholder="What's this for?">
+  </div>
+  <div id="date-area">
+    <button id="date-btn" onclick="openCal()">
+      <span>📅 <span id="date-btn-label">Today</span></span>
+      <button id="date-btn-reset" onclick="event.stopPropagation();resetDate()">Today</button>
+    </button>
   </div>
   <div id="numpad">
     <div class="num-row">
@@ -474,10 +511,96 @@ function exportTXT(){
 // ── EXPORT PDF ──
 function exportPDF(){renderAnalysis();setTimeout(()=>window.print(),200);toast("Opening print…","#B28DFF");}
 
+// ── CALENDAR ──
+let calYear, calMonth, calSelected;
+
+function todayStr(){
+  const d=new Date();
+  return d.toISOString().slice(0,10);
+}
+function resetDate(){
+  calSelected=todayStr();
+  updateDateBtn();
+}
+function updateDateBtn(){
+  const d=new Date(calSelected+'T12:00:00');
+  const today=todayStr();
+  const label=calSelected===today?'Today':d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  const btnLabel=document.getElementById('date-btn-label');
+  if(btnLabel) btnLabel.textContent=label;
+  const c=CATS.find(c=>c.id===activeCat)||CATS[0];
+  const confirm=document.getElementById('cal-confirm');
+  if(confirm) confirm.style.background=c.color;
+}
+function openCal(){
+  const d=new Date(calSelected+'T12:00:00');
+  calYear=d.getFullYear(); calMonth=d.getMonth();
+  renderCal();
+  document.getElementById('cal-modal').classList.add('open');
+}
+function closeCalOutside(e){if(e.target===document.getElementById('cal-modal'))document.getElementById('cal-modal').classList.remove('open');}
+function calNav(dir){
+  calMonth+=dir;
+  if(calMonth>11){calMonth=0;calYear++;}
+  if(calMonth<0){calMonth=11;calYear--;}
+  renderCal();
+}
+function renderCal(){
+  const c=CATS.find(c=>c.id===activeCat)||CATS[0];
+  const cf=document.getElementById('cal-confirm'); if(cf) cf.style.background=c.color;
+  document.getElementById('cal-month-label').textContent=
+    new Date(calYear,calMonth).toLocaleString('default',{month:'long',year:'numeric'});
+  const firstDay=new Date(calYear,calMonth,1).getDay();
+  const daysInMonth=new Date(calYear,calMonth+1,0).getDate();
+  const today=todayStr();
+  let html='';
+  for(let i=0;i<firstDay;i++) html+=`<div class="cal-day empty"></div>`;
+  for(let d=1;d<=daysInMonth;d++){
+    const ds=`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isToday=ds===today;
+    const isSel=ds===calSelected;
+    html+=`<button class="cal-day${isToday?' today':''}${isSel?' selected':''}"
+      style="${isSel?`background:${c.color};`:''}${isToday&&!isSel?'':''}"
+      onclick="selectCalDay('${ds}')">${d}</button>`;
+  }
+  document.getElementById('cal-grid').innerHTML=html;
+}
+function selectCalDay(ds){
+  calSelected=ds;
+  renderCal();
+}
+function confirmCal(){
+  updateDateBtn();
+  document.getElementById('cal-modal').classList.remove('open');
+}
+function initDate(){
+  calSelected=todayStr();
+  updateDateBtn();
+}
+
 // ── INIT ──
 load();
 renderCats();
 selectCat("food");
+initDate();
 </script>
+<!-- ── CALENDAR MODAL ── -->
+<div id="cal-modal" onclick="closeCalOutside(event)">
+  <div id="cal-box">
+    <div id="cal-header">
+      <button class="cal-nav" onclick="calNav(-1)">‹</button>
+      <div id="cal-month-label"></div>
+      <button class="cal-nav" onclick="calNav(1)">›</button>
+    </div>
+    <div id="cal-dow">
+      <div class="cal-dow-cell">SUN</div><div class="cal-dow-cell">MON</div>
+      <div class="cal-dow-cell">TUE</div><div class="cal-dow-cell">WED</div>
+      <div class="cal-dow-cell">THU</div><div class="cal-dow-cell">FRI</div>
+      <div class="cal-dow-cell">SAT</div>
+    </div>
+    <div id="cal-grid"></div>
+    <button id="cal-confirm" onclick="confirmCal()">Confirm</button>
+  </div>
+</div>
 </body>
 </html>
