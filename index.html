@@ -52,7 +52,7 @@
   /* note modal */
   #note-modal{display:none;position:fixed;inset:0;background:#00000044;z-index:200;align-items:flex-end;justify-content:center;}
   #note-modal.open{display:flex;}
-  #note-box{background:#F8F6F2;border-radius:24px 24px 0 0;width:100%;max-width:430px;padding:24px 20px calc(24px + var(--safe-bottom));}
+  #note-box{background:#1C1C1E;border-radius:24px 24px 0 0;width:100%;max-width:430px;padding:24px 20px calc(24px + var(--safe-bottom));}
   #note-box-title{font-size:17px;font-weight:600;margin-bottom:14px;}
   #note-modal-input{width:100%;padding:14px 16px;background:#111;border:1px solid #333;border-radius:14px;color:var(--text);font-size:16px;font-family:inherit;outline:none;}
   #note-modal-actions{display:flex;gap:10px;margin-top:14px;}
@@ -69,7 +69,7 @@
   #cal-modal{display:none;position:fixed;inset:0;background:#00000044;z-index:200;
     align-items:flex-end;justify-content:center;}
   #cal-modal.open{display:flex;}
-  #cal-box{background:#F8F6F2;border-radius:24px 24px 0 0;width:100%;max-width:430px;
+  #cal-box{background:#1C1C1E;border-radius:24px 24px 0 0;width:100%;max-width:430px;
     padding:20px 16px calc(20px + var(--safe-bottom));}
   #cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
   #cal-month-label{font-size:17px;font-weight:600;}
@@ -83,8 +83,8 @@
     color:var(--text);font-family:inherit;}
   .cal-day:active{background:var(--card2);}
   .cal-day.empty{pointer-events:none;}
-  .cal-day.today{border:1px solid #555;}
-  .cal-day.selected{color:#0F0F10;font-weight:600;}
+  .cal-day.today{border:2px solid var(--cat-color,#6DDC9A);}
+  .cal-day.selected{color:#0F0F10;font-weight:600;background:var(--cat-color,#6DDC9A)!important;}
   .cal-day.other-month{color:#333;}
   #cal-confirm{width:100%;padding:14px;border-radius:14px;border:none;font-size:16px;
     font-weight:600;font-family:inherit;cursor:pointer;margin-top:14px;color:#0F0F10;}
@@ -134,7 +134,7 @@
   #import-modal{display:none;position:fixed;inset:0;background:#000000cc;z-index:200;
     align-items:flex-end;justify-content:center;}
   #import-modal.open{display:flex;}
-  #import-box{background:#F8F6F2;border-radius:24px 24px 0 0;width:100%;max-width:430px;
+  #import-box{background:#1C1C1E;border-radius:24px 24px 0 0;width:100%;max-width:430px;
     padding:24px 20px calc(24px + var(--safe-bottom));}
   #import-title{font-size:17px;font-weight:600;margin-bottom:6px;}
   #import-sub{font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.5;}
@@ -312,7 +312,7 @@ const SK="spndtrk_v5";
 let entries=[],digits="",activeCat="food",view="month";
 
 // ── STORAGE ──
-function load(){try{entries=JSON.parse(localStorage.getItem(SK)||"[]");}catch{entries=[];}}
+function load(){try{entries=JSON.parse(localStorage.getItem(SK)||"[]");entries.sort((a,b)=>new Date(b.date)-new Date(a.date));}catch{entries=[];}}
 function save(){try{localStorage.setItem(SK,JSON.stringify(entries));}catch{}}
 
 // ── UTILS ──
@@ -393,9 +393,10 @@ function clearNote(){
 function addEntry(){
   const a=amt();
   if(a<=0){toast("Enter an amount","#FF6B6B");return;}
+  const entryDate=calSelected?new Date(calSelected+'T12:00:00').toISOString():new Date().toISOString();
   entries.unshift({id:Date.now(),amount:a,category:activeCat,
     note:currentNote,
-    date:new Date().toISOString()});
+    date:entryDate});
   save();
   digits="";upd();
   currentNote="";
@@ -469,7 +470,7 @@ function renderHistory(){
   if(!f.length){el.innerHTML=`<div class="empty">No entries<br>Start adding in the ＋ tab</div>`;return;}
   el.innerHTML=f.map(e=>{
     const c=cat(e.category);
-    const d=new Date(e.date).toLocaleDateString("en-US",{month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"});
+    const d=new Date(e.date).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"});
     return `<div class="entry" id="e${e.id}">
       <div class="entry-icon" style="background:${c.color}20">${c.icon}</div>
       <div class="entry-info">
@@ -531,7 +532,7 @@ function doImport(){
     // merge: add entries that don't already exist (by id)
     const existingIds=new Set(entries.map(e=>e.id));
     const newOnes=imported.filter(e=>e.id&&e.amount&&e.category&&e.date&&!existingIds.has(e.id));
-    entries=[...entries,...newOnes].sort((a,b)=>b.id-a.id);
+    entries=[...entries,...newOnes].sort((a,b)=>new Date(b.date)-new Date(a.date));
     save();closeImport();
     toast(`Imported ${newOnes.length} entries ✓`);
     renderAnalysis();
@@ -603,7 +604,12 @@ function calNav(dir){
 }
 function renderCal(){
   const c=CATS.find(c=>c.id===activeCat)||CATS[0];
-  const cf=document.getElementById('cal-confirm'); if(cf) cf.style.background=c.color;
+  const cf=document.getElementById('cal-confirm');
+  if(cf){cf.style.background=c.color;cf.style.color='#0F0F10';}
+  const box=document.getElementById('cal-box');
+  if(box) box.style.setProperty('--cat-color',c.color);
+  const ml=document.getElementById('cal-month-label');
+  if(ml) ml.style.color=c.color;
   document.getElementById('cal-month-label').textContent=
     new Date(calYear,calMonth).toLocaleString('default',{month:'long',year:'numeric'});
   const firstDay=new Date(calYear,calMonth,1).getDay();
