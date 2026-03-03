@@ -37,23 +37,28 @@
     z-index:999;display:none;white-space:nowrap;backdrop-filter:blur(12px);}
 
   /* ── ADD ── */
-  #amt-display{padding:calc(var(--safe-top) + 32px) 24px 20px;text-align:center;}
-  #amt-label{font-size:13px;color:var(--muted);letter-spacing:3px;text-transform:uppercase;margin-bottom:10px;}
-  #amt-value{font-size:58px;font-weight:300;letter-spacing:-2px;color:var(--dim);line-height:1;min-height:66px;transition:color .2s;}
+  #amt-display{padding:calc(var(--safe-top) + 12px) 24px 10px;text-align:center;}
+  #amt-label{font-size:12px;color:var(--muted);letter-spacing:3px;text-transform:uppercase;margin-bottom:6px;}
+  #amt-value{font-size:48px;font-weight:300;letter-spacing:-2px;color:var(--dim);line-height:1;min-height:54px;transition:color .2s;}
 
-  #cats{display:flex;gap:8px;padding:0 16px 18px;overflow-x:auto;scrollbar-width:none;}
+  #cats{display:flex;gap:8px;padding:0 16px 12px;overflow-x:auto;scrollbar-width:none;}
   #cats::-webkit-scrollbar{display:none;}
-  .cat-btn{flex-shrink:0;padding:8px 14px;border-radius:100px;font-size:13px;font-weight:500;
+  .cat-btn{flex:0 0 72px;width:72px;padding:8px 0;border-radius:12px;font-size:11px;font-weight:500;text-align:center;
     background:var(--card);color:var(--muted);border:none;cursor:pointer;font-family:inherit;transition:all .15s;}
 
-  #note-area{padding:0 16px 14px;}
+  #note-area{padding:0 16px 10px;}
   #note-toggle{font-size:13px;color:var(--muted);background:none;border:none;font-family:inherit;
     cursor:pointer;display:flex;align-items:center;gap:6px;}
-  #note-input{width:100%;padding:12px 16px;background:var(--card);border-radius:12px;
-    border:1px solid var(--card2);color:var(--text);font-size:15px;font-family:inherit;outline:none;display:none;}
-  #note-input.open{display:block;}
-  #date-area{padding:0 16px 14px;}
-  #date-btn{width:100%;padding:10px 16px;background:var(--card);border:1px solid var(--card2);
+  /* note modal */
+  #note-modal{display:none;position:fixed;inset:0;background:#000000bb;z-index:200;align-items:flex-end;justify-content:center;}
+  #note-modal.open{display:flex;}
+  #note-box{background:#1C1C1E;border-radius:24px 24px 0 0;width:100%;max-width:430px;padding:24px 20px calc(24px + var(--safe-bottom));}
+  #note-box-title{font-size:17px;font-weight:600;margin-bottom:14px;}
+  #note-modal-input{width:100%;padding:14px 16px;background:#111;border:1px solid #333;border-radius:14px;color:var(--text);font-size:16px;font-family:inherit;outline:none;}
+  #note-modal-actions{display:flex;gap:10px;margin-top:14px;}
+  .note-btn{flex:1;padding:14px 0;border-radius:14px;border:none;font-size:15px;font-weight:600;font-family:inherit;cursor:pointer;}
+  #date-area{padding:0 16px 10px;}
+  #date-btn{width:100%;padding:8px 14px;background:var(--card);border:1px solid var(--card2);
     border-radius:12px;color:var(--text);font-size:14px;font-family:inherit;cursor:pointer;
     display:flex;align-items:center;justify-content:space-between;}
   #date-btn-label{color:var(--text);}
@@ -85,13 +90,13 @@
     font-weight:600;font-family:inherit;cursor:pointer;margin-top:14px;color:#0F0F10;}
 
   #numpad{padding:0 12px;}
-  .num-row{display:flex;gap:8px;margin-bottom:8px;}
-  .num-key{flex:1;height:66px;background:var(--card);border-radius:16px;font-size:26px;color:var(--text);
+  .num-row{display:flex;gap:6px;margin-bottom:6px;}
+  .num-key{flex:1;height:58px;background:var(--card);border-radius:14px;font-size:24px;color:var(--text);
     border:none;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;
     user-select:none;-webkit-user-select:none;transition:background .1s,transform .1s;}
   .num-key:active{background:#2a2a2e;transform:scale(.93);}
   .num-key.action{font-size:20px;color:var(--muted);}
-  #add-btn{width:100%;height:62px;border-radius:16px;font-size:17px;font-weight:600;
+  #add-btn{width:100%;height:54px;border-radius:14px;font-size:16px;font-weight:600;
     border:none;cursor:pointer;font-family:inherit;margin-top:4px;color:#0F0F10;transition:background .2s;}
 
   /* ── ANALYSIS ── */
@@ -151,6 +156,30 @@
   .entry.swiped .del-btn{display:block;}
   .empty{text-align:center;padding:60px 0;color:#333;font-size:14px;line-height:2;}
 
+  /* category detail modal */
+  #cat-detail-modal{display:none;position:fixed;inset:0;background:#000000cc;z-index:300;align-items:flex-end;justify-content:center;}
+  #cat-detail-modal.open{display:flex;}
+  #cat-detail-box{background:#0F0F10;border-radius:24px 24px 0 0;width:100%;max-width:430px;
+    height:85dvh;display:flex;flex-direction:column;overflow:hidden;}
+  #cat-detail-header{padding:20px 20px 14px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #1a1a1a;flex-shrink:0;}
+  #cat-detail-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;}
+  #cat-detail-info{flex:1;}
+  #cat-detail-name{font-size:17px;font-weight:600;}
+  #cat-detail-total{font-size:13px;margin-top:2px;}
+  #cat-detail-close{width:32px;height:32px;border-radius:50%;background:#1C1C1E;border:none;
+    color:var(--text);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+  #cat-detail-body{flex:1;overflow-y:auto;padding:16px 20px;}
+  #cat-trend-wrap{background:#1C1C1E;border-radius:16px;padding:16px;margin-bottom:20px;}
+  #cat-trend-bars{display:flex;gap:5px;align-items:flex-end;height:70px;}
+  #cat-entries-label{font-size:11px;color:#444;letter-spacing:3px;text-transform:uppercase;margin-bottom:12px;}
+  .cat-detail-entry{display:flex;align-items:center;justify-content:space-between;
+    padding:12px 0;border-bottom:1px solid #181818;}
+  .cat-detail-entry:last-child{border-bottom:none;}
+  .cde-left{flex:1;min-width:0;}
+  .cde-note{font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .cde-date{font-size:11px;color:#444;margin-top:2px;}
+  .cde-amt{font-size:15px;font-weight:500;}
+
   @media print{
     body{background:#fff;color:#000;max-width:100%;}
     #tabbar,#add-screen,#history-screen,.action-grid,.view-sw,#import-modal{display:none!important;}
@@ -172,8 +201,7 @@
   </div>
   <div id="cats"></div>
   <div id="note-area">
-    <button id="note-toggle" onclick="toggleNote()">✏️ Add a note</button>
-    <input id="note-input" type="text" placeholder="What's this for?">
+    <button id="note-toggle" onclick="openNote()">✏️ <span id="note-preview">Add a note</span></button>
   </div>
   <div id="date-area">
     <button id="date-btn" onclick="openCal()">
@@ -335,10 +363,28 @@ function upd(){
   document.getElementById("amt-value").style.color=a>0?c.color:"var(--dim)";
   document.getElementById("add-btn").textContent=`Add $${fmt(a)}`;
 }
-function toggleNote(){
-  const i=document.getElementById("note-input");
-  i.classList.toggle("open");
-  if(i.classList.contains("open"))i.focus();
+let currentNote="";
+function openNote(){
+  document.getElementById("note-modal-input").value=currentNote;
+  const c=CATS.find(c=>c.id===activeCat)||CATS[0];
+  document.getElementById("note-save-btn").style.background=c.color;
+  document.getElementById("note-save-btn").style.color="#0F0F10";
+  document.getElementById("note-modal").classList.add("open");
+  setTimeout(()=>document.getElementById("note-modal-input").focus(),300);
+}
+function closeNoteOutside(e){if(e.target===document.getElementById("note-modal"))document.getElementById("note-modal").classList.remove("open");}
+function saveNote(){
+  currentNote=document.getElementById("note-modal-input").value.trim();
+  document.getElementById("note-preview").textContent=currentNote||"Add a note";
+  document.getElementById("note-preview").style.color=currentNote?"var(--text)":"var(--muted)";
+  document.getElementById("note-modal").classList.remove("open");
+}
+function clearNote(){
+  currentNote="";
+  document.getElementById("note-modal-input").value="";
+  document.getElementById("note-preview").textContent="Add a note";
+  document.getElementById("note-preview").style.color="var(--muted)";
+  document.getElementById("note-modal").classList.remove("open");
 }
 
 // ── ADD ──
@@ -350,8 +396,9 @@ function addEntry(){
     date:new Date().toISOString()});
   save();
   digits="";upd();
-  document.getElementById("note-input").value="";
-  document.getElementById("note-input").classList.remove("open");
+  currentNote="";
+  document.getElementById("note-preview").textContent="Add a note";
+  document.getElementById("note-preview").style.color="var(--muted)";
   toast(`$${fmt(a)} saved ✓`);
 }
 
@@ -387,8 +434,14 @@ function renderAnalysis(){
     .filter(c=>c.sum>0).sort((a,b)=>b.sum-a.sum);
   document.getElementById("cat-breakdown").innerHTML=bc.length?bc.map(c=>{
     const p=total>0?c.sum/total*100:0;
-    return `<div class="cat-row">
-      <div class="cat-row-top"><span>${c.icon} ${c.label}</span><span style="color:${c.color}">$${fmt(c.sum)}</span></div>
+    return `<div class="cat-row" onclick="openCatDetail('${c.id}')" style="cursor:pointer;">
+      <div class="cat-row-top">
+        <span>${c.icon} ${c.label}</span>
+        <span style="display:flex;align-items:center;gap:8px">
+          <span style="color:${c.color}">$${fmt(c.sum)}</span>
+          <span style="color:#444;font-size:12px">›</span>
+        </span>
+      </div>
       <div class="bar-bg"><div class="bar-fill" style="width:${p}%;background:${c.color}"></div></div>
       <div class="bar-pct">${Math.round(p)}%</div></div>`;
   }).join(""):`<div class="empty">No entries yet<br>Start adding in the ＋ tab</div>`;
@@ -578,12 +631,94 @@ function initDate(){
   updateDateBtn();
 }
 
+// ── CATEGORY DETAIL ──
+function openCatDetail(catId){
+  const c=CATS.find(x=>x.id===catId)||CATS[6];
+  const f=filtered().filter(e=>e.category===catId);
+  const total=f.reduce((s,e)=>s+e.amount,0);
+
+  // header
+  document.getElementById("cat-detail-icon").textContent=c.icon;
+  document.getElementById("cat-detail-icon").style.background=c.color+"20";
+  document.getElementById("cat-detail-name").textContent=c.label;
+  document.getElementById("cat-detail-total").textContent=`$${fmt(total)} · ${f.length} entries`;
+  document.getElementById("cat-detail-total").style.color=c.color;
+
+  // 6-month trend for this category
+  const now=new Date();
+  const ms=Array.from({length:6},(_,i)=>{
+    const d=new Date(now.getFullYear(),now.getMonth()-(5-i));
+    return{
+      label:d.toLocaleString("default",{month:"short"}),
+      total:entries.filter(e=>e.category===catId&&mk(new Date(e.date))===mk(d)).reduce((s,e)=>s+e.amount,0),
+      cur:i===5
+    };
+  });
+  const mx=Math.max(...ms.map(m=>m.total),1);
+  document.getElementById("cat-trend-bars").innerHTML=ms.map(m=>`
+    <div class="trend-col">
+      ${m.total>0?`<div style="font-size:9px;color:${m.cur?"#eee":"#444"}">${m.total>=1000?(m.total/1000).toFixed(1)+"k":Math.round(m.total)}</div>`:"<div></div>"}
+      <div style="width:100%;height:${Math.max(m.total/mx*100,2)}%;background:${m.cur?c.color:"#2C2C2E"};border-radius:5px 5px 2px 2px;min-height:3px"></div>
+      <div style="font-size:9px;color:${m.cur?"#888":"#3a3a3a"}">${m.label}</div>
+    </div>`).join("");
+
+  // entries list
+  document.getElementById("cat-detail-entries").innerHTML=f.length?f.map(e=>{
+    const d=new Date(e.date).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"});
+    return `<div class="cat-detail-entry">
+      <div class="cde-left">
+        <div class="cde-note">${e.note||"—"}</div>
+        <div class="cde-date">${d}</div>
+      </div>
+      <div class="cde-amt" style="color:${c.color}">$${fmt(e.amount)}</div>
+    </div>`;
+  }).join(""):`<div class="empty">No entries</div>`;
+
+  document.getElementById("cat-detail-modal").classList.add("open");
+}
+function closeCatDetail(){document.getElementById("cat-detail-modal").classList.remove("open");}
+function closeCatDetailOutside(e){if(e.target===document.getElementById("cat-detail-modal"))closeCatDetail();}
+
 // ── INIT ──
 load();
 renderCats();
 selectCat("food");
 initDate();
 </script>
+<!-- ── CATEGORY DETAIL MODAL ── -->
+<div id="cat-detail-modal" onclick="closeCatDetailOutside(event)">
+  <div id="cat-detail-box">
+    <div id="cat-detail-header">
+      <div id="cat-detail-icon"></div>
+      <div id="cat-detail-info">
+        <div id="cat-detail-name"></div>
+        <div id="cat-detail-total"></div>
+      </div>
+      <button id="cat-detail-close" onclick="closeCatDetail()">×</button>
+    </div>
+    <div id="cat-detail-body">
+      <div id="cat-trend-wrap">
+        <div class="slabel">6-Month Trend</div>
+        <div id="cat-trend-bars" class="trend-bars"></div>
+      </div>
+      <div id="cat-entries-label">All Entries</div>
+      <div id="cat-detail-entries"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── NOTE MODAL ── -->
+<div id="note-modal" onclick="closeNoteOutside(event)">
+  <div id="note-box">
+    <div id="note-box-title">✏️ Add a note</div>
+    <input id="note-modal-input" type="text" placeholder="What's this for?">
+    <div id="note-modal-actions">
+      <button class="note-btn" style="background:var(--card2);color:var(--text)" onclick="clearNote()">Clear</button>
+      <button class="note-btn" id="note-save-btn" onclick="saveNote()">Save</button>
+    </div>
+  </div>
+</div>
+
 <!-- ── CALENDAR MODAL ── -->
 <div id="cal-modal" onclick="closeCalOutside(event)">
   <div id="cal-box">
