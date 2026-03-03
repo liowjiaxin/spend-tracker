@@ -20,6 +20,7 @@
 
   /* screens */
   .screen{display:none;flex-direction:column;flex:1;overflow-y:auto;padding-bottom:calc(72px + var(--safe-bottom));}
+  #add-screen{padding-bottom:0;overflow:hidden;}
   .screen.active{display:flex;}
 
   /* tabbar */
@@ -89,7 +90,7 @@
   #cal-confirm{width:100%;padding:14px;border-radius:14px;border:none;font-size:16px;
     font-weight:600;font-family:inherit;cursor:pointer;margin-top:14px;color:#0F0F10;}
 
-  #numpad{padding:0 12px;}
+  #numpad{padding:0 12px calc(var(--safe-bottom) + 72px);}
   .num-row{display:flex;gap:6px;margin-bottom:6px;}
   .num-key{flex:1;height:58px;background:var(--card);border-radius:14px;font-size:24px;color:var(--text);
     border:none;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;
