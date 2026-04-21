@@ -724,6 +724,18 @@
             background: var(--card2);
         }
 
+        .action-btn.danger {
+            background: #FF3B3010;
+            border: 1px solid #FF3B3020;
+            color: #FF3B30;
+            grid-column: span 2;
+            margin-top: 4px;
+        }
+
+        .action-btn.danger:active {
+            background: #FF3B3020;
+        }
+
         .action-icon {
             font-size: 24px;
         }
@@ -1203,6 +1215,9 @@
                     backup</button>
                 <button class="action-btn" onclick="exportTXT()"><span class="action-icon">📄</span>Export TXT</button>
                 <button class="action-btn" onclick="exportPDF()"><span class="action-icon">🖨️</span>Save PDF</button>
+                <button class="action-btn danger" onclick="eraseAllData()">
+                    <span class="action-icon">🗑️</span>Erase All Data
+                </button>
             </div>
 
             <div id="weekly-breakdown-card" class="trend-card" style="display: none;"></div>
@@ -1868,6 +1883,15 @@
             a.click(); toast("TXT exported ✓");
         }
         function exportPDF() { renderAnalysis(); setTimeout(() => window.print(), 200); toast("Opening print…", "#B28DFF"); }
+        function eraseAllData() {
+            if (confirm("Are you sure you want to permanently erase ALL entries? This cannot be undone.")) {
+                entries = [];
+                localStorage.removeItem(SK);
+                renderAnalysis();
+                renderHistory();
+                toast("All data cleared", "#FF3B30");
+            }
+        }
 
         let calYear, calMonth, calSelected;
         function todayStr() { const d = new Date(); return d.toISOString().slice(0, 10); }
