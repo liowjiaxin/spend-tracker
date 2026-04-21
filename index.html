@@ -468,7 +468,42 @@
 
         /* ANALYSIS */
         .page-top {
-            padding: calc(var(--safe-top) + 28px) 20px 20px;
+            padding: calc(var(--safe-top) + 20px) 20px 10px;
+        }
+
+        .header-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .nav-btn {
+            background: var(--card2);
+            border: none;
+            color: var(--text);
+            font-size: 20px;
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background .15s;
+        }
+
+        .nav-btn:active {
+            background: #444;
+        }
+
+        .nav-btn.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .header-center {
+            text-align: center;
         }
 
         .view-sw {
@@ -507,10 +542,11 @@
         }
 
         .total-num {
-            font-size: 50px;
+            font-size: 46px;
             font-weight: 300;
-            letter-spacing: -2px;
+            letter-spacing: -1px;
             margin-bottom: 4px;
+            line-height: 1;
         }
 
         .total-sub {
@@ -518,7 +554,7 @@
             color: var(--muted);
             letter-spacing: 3px;
             text-transform: uppercase;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
         }
 
         .total-ct {
@@ -1072,7 +1108,8 @@
             #chart-screen,
             .action-grid,
             .view-sw,
-            #import-modal {
+            #import-modal,
+            .header-nav .nav-btn {
                 display: none !important;
             }
 
@@ -1100,7 +1137,6 @@
 <body>
     <div id="toast"></div>
 
-    <!-- ADD -->
     <div id="add-screen" class="screen active">
         <div id="amt-display">
             <div id="amt-label">🍜 Food</div>
@@ -1141,18 +1177,24 @@
         </div>
     </div>
 
-    <!-- ANALYSIS -->
     <div id="analysis-screen" class="screen">
         <div class="page-top">
-            <div class="total-sub" id="period-label">This Month</div>
-            <div class="total-num" id="total-display">$0.00</div>
-            <div class="total-ct" id="count-display">0 transactions</div>
+            <div class="header-nav">
+                <button class="nav-btn" id="nav-prev-a" onclick="shiftTime(-1)">‹</button>
+                <div class="header-center">
+                    <div class="total-sub" id="period-label">This Month</div>
+                    <div class="total-num" id="total-display">$0.00</div>
+                    <div class="total-ct" id="count-display">0 transactions</div>
+                </div>
+                <button class="nav-btn" id="nav-next-a" onclick="shiftTime(1)">›</button>
+            </div>
         </div>
         <div style="padding:0 20px">
             <div class="view-sw">
+                <button class="view-btn" onclick="setView('week',this)">Week</button>
                 <button class="view-btn active" onclick="setView('month',this)">Month</button>
                 <button class="view-btn" onclick="setView('year',this)">Year</button>
-                <button class="view-btn" onclick="setView('all',this)">All Time</button>
+                <button class="view-btn" onclick="setView('all',this)">All</button>
             </div>
             <div class="action-grid">
                 <button class="action-btn" onclick="exportJSON()"><span class="action-icon">📤</span>Export
@@ -1162,17 +1204,16 @@
                 <button class="action-btn" onclick="exportTXT()"><span class="action-icon">📄</span>Export TXT</button>
                 <button class="action-btn" onclick="exportPDF()"><span class="action-icon">🖨️</span>Save PDF</button>
             </div>
+
+            <div id="weekly-breakdown-card" class="trend-card" style="display: none;"></div>
+
             <div class="slabel">By Category</div>
             <div id="cat-breakdown"></div>
             <div class="slabel">Insights</div>
             <div id="insights-container" class="insights-grid"></div>
         </div>
         <div style="padding:0 20px">
-            <div class="trend-card">
-                <div class="slabel">6-Month Trend</div>
-                <div id="trend-bars" class="trend-bars"></div>
-            </div>
-            <div class="slabel">Monthly by Category</div>
+            <div class="slabel" id="chart-title-label">Spend Trends</div>
             <div class="chart-controls">
                 <div class="chart-seg" id="type-seg">
                     <button class="chart-seg-btn active" data-val="stacked"
@@ -1180,11 +1221,6 @@
                     <button class="chart-seg-btn" data-val="grouped"
                         onclick="setChartType('grouped',this)">Grouped</button>
                     <button class="chart-seg-btn" data-val="line" onclick="setChartType('line',this)">Line</button>
-                </div>
-                <div class="chart-seg" id="range-seg">
-                    <button class="chart-seg-btn active" data-val="6" onclick="setChartRange('6',this)">6M</button>
-                    <button class="chart-seg-btn" data-val="12" onclick="setChartRange('12',this)">12M</button>
-                    <button class="chart-seg-btn" data-val="all" onclick="setChartRange('all',this)">All</button>
                 </div>
             </div>
             <div class="chart-legend" id="chart-legend"></div>
@@ -1195,19 +1231,25 @@
         </div>
     </div>
 
-    <!-- HISTORY -->
     <div id="history-screen" class="screen">
         <div class="page-top">
+            <div class="header-nav">
+                <button class="nav-btn" id="nav-prev-h" onclick="shiftTime(-1)">‹</button>
+                <div class="header-center">
+                    <div class="total-sub" id="history-period-label">This Month</div>
+                </div>
+                <button class="nav-btn" id="nav-next-h" onclick="shiftTime(1)">›</button>
+            </div>
             <div class="view-sw">
+                <button class="view-btn" onclick="setView('week',this)">Week</button>
                 <button class="view-btn active" onclick="setView('month',this)">Month</button>
                 <button class="view-btn" onclick="setView('year',this)">Year</button>
-                <button class="view-btn" onclick="setView('all',this)">All Time</button>
+                <button class="view-btn" onclick="setView('all',this)">All</button>
             </div>
         </div>
         <div id="history-list"></div>
     </div>
 
-    <!-- TABBAR -->
     <div id="tabbar">
         <button class="tab active" onclick="goScreen('add',this)"><span
                 class="tab-icon">＋</span><span>Add</span></button>
@@ -1217,7 +1259,6 @@
                 class="tab-icon">≡</span><span>History</span></button>
     </div>
 
-    <!-- IMPORT MODAL -->
     <div id="import-modal" onclick="closeImportOutside(event)">
         <div id="import-box">
             <div id="import-title">📥 Import Backup</div>
@@ -1232,7 +1273,6 @@
         </div>
     </div>
 
-    <!-- CATEGORY DETAIL MODAL -->
     <div id="cat-detail-modal" onclick="closeCatDetailOutside(event)">
         <div id="cat-detail-box">
             <div id="cat-detail-header">
@@ -1244,17 +1284,12 @@
                 <button id="cat-detail-close" onclick="closeCatDetail()">×</button>
             </div>
             <div id="cat-detail-body">
-                <div id="cat-trend-wrap">
-                    <div class="slabel">6-Month Trend</div>
-                    <div id="cat-trend-bars" class="trend-bars"></div>
-                </div>
                 <div id="cat-entries-label">All Entries</div>
                 <div id="cat-detail-entries"></div>
             </div>
         </div>
     </div>
 
-    <!-- NOTE MODAL -->
     <div id="note-modal" onclick="closeNoteOutside(event)">
         <div id="note-box">
             <div id="note-box-title">✏️ Add a note</div>
@@ -1268,7 +1303,6 @@
         </div>
     </div>
 
-    <!-- CALENDAR MODAL -->
     <div id="cal-modal" onclick="closeCalOutside(event)">
         <div id="cal-box">
             <div id="cal-header">
@@ -1303,7 +1337,8 @@
         ];
         const SK = "spndtrk_v5";
         let entries = [], digits = "", activeCat = "food", view = "month";
-        let chartType = "stacked", chartRange = "6", spendChart = null;
+        let chartType = "stacked", spendChart = null;
+        let activeDate = new Date(); // Master date tracking for views
 
         function load() { try { entries = JSON.parse(localStorage.getItem(SK) || "[]"); entries.sort((a, b) => new Date(b.date) - new Date(a.date)); } catch { entries = []; } }
         function save() { try { localStorage.setItem(SK, JSON.stringify(entries)); } catch { } }
@@ -1360,25 +1395,23 @@
             const c = CATS.find(c => c.id === activeCat) || CATS[0];
             document.getElementById("note-save-btn").style.background = c.color;
             document.getElementById("note-save-btn").style.color = "#0F0F10";
-            
-            // 1. Calculate frequencies of notes in this category
+
             const counts = {};
             entries.filter(e => e.note).forEach(e => {
                 const key = (e.category === activeCat ? 'cat_' : 'global_') + e.note;
-                counts[key] = (counts[key] || 0) + (e.category === activeCat ? 5 : 1); // Weight category-specific matches higher
+                counts[key] = (counts[key] || 0) + (e.category === activeCat ? 5 : 1);
             });
 
-            // 2. Sort unique notes by weighted frequency
             const suggestions = Object.keys(counts)
                 .map(k => k.split('_').slice(1).join('_'))
-                .filter((v, i, a) => a.indexOf(v) === i) // Unique
+                .filter((v, i, a) => a.indexOf(v) === i)
                 .sort((a, b) => {
                     const weightA = (counts['cat_' + a] || 0) + (counts['global_' + a] || 0);
                     const weightB = (counts['cat_' + b] || 0) + (counts['global_' + b] || 0);
                     return weightB - weightA;
                 })
                 .slice(0, 5);
-            
+
             const qnEl = document.getElementById("quick-notes");
             if (suggestions.length) {
                 qnEl.innerHTML = `<div class="qn-label">Recent Suggestions</div><div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px">${suggestions.map(n => `<div class="qn-chip" onclick="setQuickNote('${n.replace(/'/g, "\\'")}')">${n}</div>`).join("")}</div>`;
@@ -1389,10 +1422,7 @@
             document.getElementById("note-modal").classList.add("open");
             setTimeout(() => document.getElementById("note-modal-input").focus(), 300);
         }
-        function setQuickNote(text) {
-            document.getElementById("note-modal-input").value = text;
-            saveNote();
-        }
+        function setQuickNote(text) { document.getElementById("note-modal-input").value = text; saveNote(); }
         function closeNoteOutside(e) { if (e.target === document.getElementById("note-modal")) document.getElementById("note-modal").classList.remove("open"); }
         function saveNote() {
             currentNote = document.getElementById("note-modal-input").value.trim();
@@ -1401,8 +1431,7 @@
             document.getElementById("note-modal").classList.remove("open");
         }
         function clearNote() {
-            currentNote = "";
-            document.getElementById("note-modal-input").value = "";
+            currentNote = ""; document.getElementById("note-modal-input").value = "";
             document.getElementById("note-preview").textContent = "Add a note";
             document.getElementById("note-preview").style.color = "var(--muted)";
             document.getElementById("note-modal").classList.remove("open");
@@ -1413,8 +1442,7 @@
             if (a <= 0) { toast("Enter an amount", "#FF6B6B"); return; }
             const entryDate = calSelected ? new Date(calSelected + 'T12:00:00').toISOString() : new Date().toISOString();
             entries.unshift({ id: Date.now(), amount: a, category: activeCat, note: currentNote, date: entryDate });
-            save(); digits = ""; upd();
-            currentNote = "";
+            save(); digits = ""; upd(); currentNote = "";
             document.getElementById("note-preview").textContent = "Add a note";
             document.getElementById("note-preview").style.color = "var(--muted)";
             toast(`$${fmt(a)} saved ✓`);
@@ -1422,29 +1450,120 @@
 
         function setView(v, btn) {
             view = v;
+            activeDate = new Date(); // Reset to today when switching views
             document.querySelectorAll(".view-btn").forEach(b => {
                 const t = b.textContent.trim().toLowerCase();
-                b.classList.toggle("active", (v === "month" && t === "month") || (v === "year" && t === "year") || (v === "all" && t === "all time"));
+                b.classList.toggle("active", (v === "week" && t === "week") || (v === "month" && t === "month") || (v === "year" && t === "year") || (v === "all" && t === "all"));
             });
             if (document.getElementById("analysis-screen").classList.contains("active")) renderAnalysis();
             if (document.getElementById("history-screen").classList.contains("active")) renderHistory();
         }
+
+        function shiftTime(direction) {
+            if (view === "month") {
+                activeDate.setMonth(activeDate.getMonth() + direction);
+            } else if (view === "week") {
+                activeDate.setDate(activeDate.getDate() + (direction * 7));
+            } else if (view === "year") {
+                activeDate.setFullYear(activeDate.getFullYear() + direction);
+            }
+            if (document.getElementById("analysis-screen").classList.contains("active")) renderAnalysis();
+            if (document.getElementById("history-screen").classList.contains("active")) renderHistory();
+        }
+
+        function getPeriodBounds() {
+            const start = new Date(activeDate);
+            const end = new Date(activeDate);
+
+            if (view === "week") {
+                start.setDate(start.getDate() - start.getDay()); start.setHours(0, 0, 0, 0);
+                end.setDate(start.getDate() + 6); end.setHours(23, 59, 59, 999);
+            } else if (view === "month") {
+                start.setDate(1); start.setHours(0, 0, 0, 0);
+                end.setMonth(end.getMonth() + 1); end.setDate(0); end.setHours(23, 59, 59, 999);
+            } else if (view === "year") {
+                start.setMonth(0, 1); start.setHours(0, 0, 0, 0);
+                end.setMonth(11, 31); end.setHours(23, 59, 59, 999);
+            }
+            return { start, end };
+        }
+
         function filtered() {
-            const now = new Date();
+            if (view === "all") return entries;
+            const { start, end } = getPeriodBounds();
             return entries.filter(e => {
                 const d = new Date(e.date);
-                if (view === "month") return mk(d) === mk(now);
-                if (view === "year") return d.getFullYear() === now.getFullYear();
-                return true;
+                return d >= start && d <= end;
+            });
+        }
+
+        function updateHeaders() {
+            let periodText = "All Time";
+            let showArrows = false;
+
+            if (view === "week") {
+                const { start, end } = getPeriodBounds();
+                const sm = start.toLocaleString("default", { month: "short" });
+                const em = end.toLocaleString("default", { month: "short" });
+                periodText = sm === em
+                    ? `${sm} ${start.getDate()} - ${end.getDate()}, ${start.getFullYear()}`
+                    : `${sm} ${start.getDate()} - ${em} ${end.getDate()}, ${end.getFullYear()}`;
+                showArrows = true;
+            } else if (view === "month") {
+                periodText = activeDate.toLocaleString("default", { month: "long", year: "numeric" });
+                showArrows = true;
+            } else if (view === "year") {
+                periodText = activeDate.getFullYear().toString();
+                showArrows = true;
+            }
+
+            document.getElementById("period-label").textContent = periodText;
+            document.getElementById("history-period-label").textContent = periodText;
+
+            ['nav-prev-a', 'nav-next-a', 'nav-prev-h', 'nav-next-h'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.classList.toggle('hidden', !showArrows);
             });
         }
 
         function renderAnalysis() {
-            const f = filtered(), total = f.reduce((s, e) => s + e.amount, 0), now = new Date();
-            document.getElementById("period-label").textContent =
-                view === "month" ? ml(mk(now)) : view === "year" ? now.getFullYear() : "All Time";
+            updateHeaders();
+            const f = filtered(), total = f.reduce((s, e) => s + e.amount, 0);
             document.getElementById("total-display").textContent = "$" + fmt(total);
             document.getElementById("count-display").textContent = f.length + " transactions";
+
+            // Render Weekly Breakdown Card ONLY in Month View
+            const weeklyCard = document.getElementById("weekly-breakdown-card");
+            if (view === "month") {
+                weeklyCard.style.display = "block";
+                const { start } = getPeriodBounds();
+                const firstDayOfMonth = start.getDay();
+                const weeksData = [0, 0, 0, 0, 0, 0];
+
+                f.forEach(e => {
+                    const d = new Date(e.date);
+                    const weekNum = Math.floor((d.getDate() + firstDayOfMonth - 1) / 7);
+                    if (weekNum >= 0 && weekNum < 6) weeksData[weekNum] += e.amount;
+                });
+
+                const maxWeekTotal = Math.max(...weeksData, 1);
+                let wHtml = `<div class="slabel">Spending By Week</div><div class="trend-bars">`;
+                weeksData.forEach((amt, i) => {
+                    if (amt > 0 || i < 4) {
+                        wHtml += `
+                        <div class="trend-col">
+                            <div style="font-size:9px;color:${amt > 0 ? '#EEE' : '#444'}">${amt > 0 ? `$${Math.round(amt)}` : ''}</div>
+                            <div style="width:100%;height:${Math.max(amt / maxWeekTotal * 100, 2)}%;background:var(--card2);border-radius:5px 5px 2px 2px;min-height:3px;transition:height .5s"></div>
+                            <div style="font-size:9px;color:#888">W${i + 1}</div>
+                        </div>`;
+                    }
+                });
+                wHtml += `</div>`;
+                weeklyCard.innerHTML = wHtml;
+            } else {
+                weeklyCard.style.display = "none";
+            }
+
             const bc = CATS.map(c => ({ ...c, sum: f.filter(e => e.category === c.id).reduce((s, e) => s + e.amount, 0) }))
                 .filter(c => c.sum > 0).sort((a, b) => b.sum - a.sum);
             document.getElementById("cat-breakdown").innerHTML = bc.length ? bc.map(c => {
@@ -1461,20 +1580,7 @@
       <div class="bar-pct">${Math.round(p)}%</div>
     </button>`;
             }).join("") : `<div class="empty">No entries yet<br>Start adding in the ＋ tab</div>`;
-            const ms = Array.from({ length: 6 }, (_, i) => {
-                const d = new Date(now.getFullYear(), now.getMonth() - (5 - i));
-                return {
-                    label: d.toLocaleString("default", { month: "short" }),
-                    total: entries.filter(e => mk(new Date(e.date)) === mk(d)).reduce((s, e) => s + e.amount, 0), cur: i === 5
-                };
-            });
-            const mx = Math.max(...ms.map(m => m.total), 1);
-            document.getElementById("trend-bars").innerHTML = ms.map(m => `
-    <div class="trend-col">
-      ${m.total > 0 ? `<div style="font-size:9px;color:${m.cur ? "#eee" : "#444"}">${m.total >= 1000 ? (m.total / 1000).toFixed(1) + "k" : Math.round(m.total)}</div>` : "<div></div>"}
-      <div style="width:100%;height:${Math.max(m.total / mx * 100, 2)}%;background:${m.cur ? "#EEEAE4" : "#2C2C2E"};border-radius:5px 5px 2px 2px;min-height:3px;transition:height .5s"></div>
-      <div style="font-size:9px;color:${m.cur ? "#888" : "#3a3a3a"}">${m.label}</div>
-    </div>`).join("");
+
             renderInsights();
             renderChart();
         }
@@ -1483,46 +1589,28 @@
             const f = filtered(), total = f.reduce((s, e) => s + e.amount, 0), now = new Date();
             let insights = [];
 
-            // 1. Projection (Only for Month view)
-            if (view === "month") {
-                const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-                const dayOfMonth = now.getDate();
-                const projected = (total / dayOfMonth) * daysInMonth;
+            if (f.length > 0) {
                 insights.push({
-                    title: "Projected Month Total",
-                    value: `$${fmt(projected)}`,
-                    sub: `Based on current avg $${fmt(total / dayOfMonth)}/day`,
-                    color: "#F7C948"
+                    title: "Average Transaction",
+                    value: `$${fmt(total / f.length)}`,
+                    sub: "Per expense in this period",
+                    color: "#5BC8C8"
                 });
-            }
 
-            // 2. Comparison (Current vs Previous)
-            if (view === "month" || view === "year") {
-                let prevTotal = 0, label = "";
-                if (view === "month") {
-                    const pm = mk(new Date(now.getFullYear(), now.getMonth() - 1));
-                    prevTotal = entries.filter(e => mk(new Date(e.date)) === pm).reduce((s, e) => s + e.amount, 0);
-                    label = "last month";
-                } else {
-                    const py = now.getFullYear() - 1;
-                    prevTotal = entries.filter(e => new Date(e.date).getFullYear() === py).reduce((s, e) => s + e.amount, 0);
-                    label = "last year";
-                }
+                const days = ["Sundays", "Mondays", "Tuesdays", "Wednesdays", "Thursdays", "Fridays", "Saturdays"];
+                const dayTotals = [0, 0, 0, 0, 0, 0, 0];
+                f.forEach(e => dayTotals[new Date(e.date).getDay()] += e.amount);
+                const maxDayIdx = dayTotals.indexOf(Math.max(...dayTotals));
 
-                if (prevTotal > 0) {
-                    const diff = total - prevTotal;
-                    const pct = Math.abs(diff / prevTotal * 100).toFixed(0);
+                if (dayTotals[maxDayIdx] > 0) {
                     insights.push({
-                        title: `vs ${label}`,
-                        value: diff > 0 ? `↑ $${fmt(diff)} more` : `↓ $${fmt(Math.abs(diff))} less`,
-                        sub: `${diff > 0 ? "Spending has increased" : "Great job, you spent less"} by ${pct}%`,
-                        color: diff > 0 ? "#FF6B6B" : "#6DDC9A"
+                        title: "Highest Spend Day",
+                        value: days[maxDayIdx],
+                        sub: `$${fmt(dayTotals[maxDayIdx])} total`,
+                        color: "#B28DFF"
                     });
                 }
-            }
 
-            // 3. Largest Expense
-            if (f.length > 0) {
                 const maxE = f.reduce((a, b) => a.amount > b.amount ? a : b);
                 const c = cat(maxE.category);
                 insights.push({
@@ -1543,6 +1631,7 @@
         }
 
         function renderHistory() {
+            updateHeaders();
             const f = filtered(), el = document.getElementById("history-list");
             if (!f.length) { el.innerHTML = `<div class="empty">No entries<br>Start adding in the ＋ tab</div>`; return; }
             el.innerHTML = f.map(e => {
@@ -1574,57 +1663,110 @@
             toast("Deleted", "#FF6B6B");
         }
 
-        // CHART
         function setChartType(val, btn) {
             chartType = val;
             document.querySelectorAll("#type-seg .chart-seg-btn").forEach(b => b.classList.remove("active"));
             btn.classList.add("active");
             renderChart();
         }
-        function setChartRange(val, btn) {
-            chartRange = val;
-            document.querySelectorAll("#range-seg .chart-seg-btn").forEach(b => b.classList.remove("active"));
-            btn.classList.add("active");
-            renderChart();
-        }
-
-        function getChartMonths() {
-            const now = new Date();
-            if (chartRange === "all") {
-                if (!entries.length) return Array.from({ length: 6 }, (_, i) => { const d = new Date(now.getFullYear(), now.getMonth() - (5 - i)); return mk(d); });
-                const dates = entries.map(e => new Date(e.date));
-                const oldest = new Date(Math.min(...dates));
-                const months = [];
-                let d = new Date(oldest.getFullYear(), oldest.getMonth());
-                while (mk(d) <= mk(now)) { months.push(mk(d)); d = new Date(d.getFullYear(), d.getMonth() + 1); }
-                return months;
-            }
-            const n = +chartRange;
-            return Array.from({ length: n }, (_, i) => { const d = new Date(now.getFullYear(), now.getMonth() - (n - 1 - i)); return mk(d); });
-        }
 
         function renderChart() {
-            const months = getChartMonths();
-            const labels = months.map(m => { const [y, mo] = m.split("-"); return new Date(+y, +mo - 1).toLocaleString("default", { month: "short", year: "2-digit" }); });
+            const f = filtered();
+            let labels = [], datasets = [], title = "";
 
-            const datasets = CATS.map(c => ({
-                label: c.label,
-                data: months.map(mo => entries.filter(e => e.category === c.id && mk(new Date(e.date)) === mo).reduce((s, e) => s + e.amount, 0)),
-                backgroundColor: c.color + (chartType === "line" ? "44" : "cc"),
-                borderColor: c.color,
+            if (view === "month") {
+                title = "Daily Spend";
+                const { end } = getPeriodBounds();
+                const daysInMonth = end.getDate();
+                labels = Array.from({ length: daysInMonth }, (_, i) => (i + 1).toString());
+
+                datasets = CATS.map(c => ({
+                    label: c.label,
+                    color: c.color,
+                    data: Array.from({ length: daysInMonth }, () => 0)
+                }));
+
+                f.forEach(e => {
+                    const d = new Date(e.date);
+                    const dayIdx = d.getDate() - 1;
+                    const catIdx = CATS.findIndex(c => c.id === e.category);
+                    if (catIdx > -1) datasets[catIdx].data[dayIdx] += e.amount;
+                });
+            } else if (view === "week") {
+                title = "Daily Spend";
+                labels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                datasets = CATS.map(c => ({
+                    label: c.label, color: c.color,
+                    data: [0, 0, 0, 0, 0, 0, 0]
+                }));
+                f.forEach(e => {
+                    const dayIdx = new Date(e.date).getDay();
+                    const catIdx = CATS.findIndex(c => c.id === e.category);
+                    if (catIdx > -1) datasets[catIdx].data[dayIdx] += e.amount;
+                });
+            } else if (view === "year") {
+                title = "Monthly Spend";
+                labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                datasets = CATS.map(c => ({
+                    label: c.label, color: c.color,
+                    data: Array.from({ length: 12 }, () => 0)
+                }));
+                f.forEach(e => {
+                    const monthIdx = new Date(e.date).getMonth();
+                    const catIdx = CATS.findIndex(c => c.id === e.category);
+                    if (catIdx > -1) datasets[catIdx].data[monthIdx] += e.amount;
+                });
+            } else {
+                title = "Monthly Spend (All Time)";
+                if (!entries.length) {
+                    labels = [new Date().toLocaleString('default', { month: 'short', year: '2-digit' })];
+                    datasets = CATS.map(c => ({ label: c.label, color: c.color, data: [0] }));
+                } else {
+                    const dates = entries.map(e => new Date(e.date));
+                    const oldest = new Date(Math.min(...dates));
+                    const newest = new Date(Math.max(...dates));
+                    const monthsMap = {};
+                    let d = new Date(oldest.getFullYear(), oldest.getMonth());
+
+                    let idx = 0;
+                    while (d <= newest) {
+                        const mKey = mk(d);
+                        labels.push(d.toLocaleString("default", { month: "short", year: "2-digit" }));
+                        monthsMap[mKey] = idx++;
+                        d.setMonth(d.getMonth() + 1);
+                    }
+
+                    datasets = CATS.map(c => ({ label: c.label, color: c.color, data: Array.from({ length: labels.length }, () => 0) }));
+                    entries.forEach(e => {
+                        const mKey = mk(new Date(e.date));
+                        if (monthsMap[mKey] !== undefined) {
+                            const catIdx = CATS.findIndex(c => c.id === e.category);
+                            if (catIdx > -1) datasets[catIdx].data[monthsMap[mKey]] += e.amount;
+                        }
+                    });
+                }
+            }
+
+            document.getElementById('chart-title-label').textContent = title;
+
+            const chartDatasets = datasets.map(d => ({
+                label: d.label,
+                data: d.data,
+                backgroundColor: d.color + (chartType === "line" ? "44" : "cc"),
+                borderColor: d.color,
                 borderWidth: chartType === "line" ? 2 : 0,
                 fill: false,
                 tension: 0.35,
                 pointRadius: chartType === "line" ? 4 : 0,
-                pointBackgroundColor: c.color,
+                pointBackgroundColor: d.color,
             }));
 
-            const usedCats = CATS.filter((_, i) => datasets[i].data.some(v => v > 0));
+            const usedCats = datasets.filter(d => d.data.some(v => v > 0));
             document.getElementById("chart-legend").innerHTML = usedCats.map(c =>
                 `<div class="chart-legend-item"><div class="chart-legend-dot" style="background:${c.color}"></div>${c.label}</div>`
             ).join("");
 
-            const totals = CATS.map((c, i) => ({ label: c.label, color: c.color, icon: c.icon, total: datasets[i].data.reduce((s, v) => s + v, 0) }))
+            const totals = datasets.map((d, i) => ({ label: d.label, color: d.color, icon: CATS[i].icon, total: d.data.reduce((s, v) => s + v, 0) }))
                 .filter(x => x.total > 0).sort((a, b) => b.total - a.total);
             const grandTotal = totals.reduce((s, t) => s + t.total, 0);
             document.getElementById("chart-summary").innerHTML = totals.slice(0, 4).map(t =>
@@ -1641,7 +1783,7 @@
             const ctx = document.getElementById("spendChart").getContext("2d");
             spendChart = new Chart(ctx, {
                 type: chartType === "line" ? "line" : "bar",
-                data: { labels, datasets },
+                data: { labels, datasets: chartDatasets },
                 options: {
                     responsive: true, maintainAspectRatio: false,
                     plugins: {
@@ -1657,7 +1799,7 @@
                     scales: {
                         x: {
                             stacked: chartType === "stacked",
-                            ticks: { color: "#555", font: { size: 10 }, autoSkip: months.length > 8, maxRotation: 45 },
+                            ticks: { color: "#555", font: { size: 10 }, autoSkip: labels.length > 10, maxRotation: 0 },
                             grid: { display: false }, border: { color: "#242428" }
                         },
                         y: {
@@ -1707,8 +1849,9 @@
             const f = filtered();
             if (!f.length) { toast("No entries", "#FF6B6B"); return; }
             const now = new Date(), total = f.reduce((s, e) => s + e.amount, 0);
-            const period = view === "month" ? ml(mk(now)) : view === "year" ? now.getFullYear() : "All Time";
-            let t = `SPENDING REPORT — ${period}\nGenerated: ${now.toLocaleString()}\n${"─".repeat(40)}\n\n`;
+            const periodText = document.getElementById("period-label").textContent;
+
+            let t = `SPENDING REPORT — ${periodText}\nGenerated: ${now.toLocaleString()}\n${"─".repeat(40)}\n\n`;
             t += `TOTAL: $${fmt(total)}\nENTRIES: ${f.length}\n\nBY CATEGORY\n${"─".repeat(40)}\n`;
             CATS.map(c => ({ ...c, sum: f.filter(e => e.category === c.id).reduce((s, e) => s + e.amount, 0) }))
                 .filter(c => c.sum > 0).sort((a, b) => b.sum - a.sum)
@@ -1788,21 +1931,7 @@
             document.getElementById("cat-detail-name").textContent = c.label;
             document.getElementById("cat-detail-total").textContent = `$${fmt(total)} · ${f.length} entries`;
             document.getElementById("cat-detail-total").style.color = c.color;
-            const now = new Date();
-            const ms = Array.from({ length: 6 }, (_, i) => {
-                const d = new Date(now.getFullYear(), now.getMonth() - (5 - i));
-                return {
-                    label: d.toLocaleString("default", { month: "short" }),
-                    total: entries.filter(e => e.category === catId && mk(new Date(e.date)) === mk(d)).reduce((s, e) => s + e.amount, 0), cur: i === 5
-                };
-            });
-            const mx = Math.max(...ms.map(m => m.total), 1);
-            document.getElementById("cat-trend-bars").innerHTML = ms.map(m => `
-    <div class="trend-col">
-      ${m.total > 0 ? `<div style="font-size:9px;color:${m.cur ? "#eee" : "#444"}">${m.total >= 1000 ? (m.total / 1000).toFixed(1) + "k" : Math.round(m.total)}</div>` : "<div></div>"}
-      <div style="width:100%;height:${Math.max(m.total / mx * 100, 2)}%;background:${m.cur ? c.color : "#2C2C2E"};border-radius:5px 5px 2px 2px;min-height:3px"></div>
-      <div style="font-size:9px;color:${m.cur ? "#888" : "#3a3a3a"}">${m.label}</div>
-    </div>`).join("");
+
             document.getElementById("cat-detail-entries").innerHTML = f.length ? f.map(e => {
                 const d = new Date(e.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
                 return `<div class="cat-detail-entry">
