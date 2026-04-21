@@ -1638,6 +1638,31 @@
                     color: "#F7C948"
                 });
 
+                // Month-to-Date Comparison (Current Month Only)
+                if (view === "month") {
+                    const isCurrent = (activeDate.getMonth() === now.getMonth() && activeDate.getFullYear() === now.getFullYear());
+                    if (isCurrent) {
+                        const dayOfMonth = now.getDate();
+                        const pmDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+                        const pmKey = mk(pmDate);
+                        const pmTotalToDate = entries.filter(e => {
+                            const d = new Date(e.date);
+                            return mk(d) === pmKey && d.getDate() <= dayOfMonth;
+                        }).reduce((s, e) => s + e.amount, 0);
+
+                        if (pmTotalToDate > 0) {
+                            const diff = total - pmTotalToDate;
+                            const pct = Math.abs(diff / pmTotalToDate * 100).toFixed(0);
+                            insights.push({
+                                title: "vs Last Month (MTD)",
+                                value: diff > 0 ? `↑ $${fmt(diff)}` : `↓ $${fmt(Math.abs(diff))}`,
+                                sub: `${diff > 0 ? 'Spending is UP' : 'Spending is DOWN'} by ${pct}% vs same days last month`,
+                                color: diff > 0 ? "#FF6B6B" : "#6DDC9A"
+                            });
+                        }
+                    }
+                }
+
                 const days = ["Sundays", "Mondays", "Tuesdays", "Wednesdays", "Thursdays", "Fridays", "Saturdays"];
                 const dayTotals = [0, 0, 0, 0, 0, 0, 0];
                 f.forEach(e => dayTotals[new Date(e.date).getDay()] += e.amount);
