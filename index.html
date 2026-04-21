@@ -611,7 +611,7 @@
         /* INSIGHTS */
         .insights-grid {
             display: grid;
-            grid-template-columns: 1fr;
+            grid-template-columns: 1fr 1fr;
             gap: 12px;
             margin-bottom: 24px;
         }
@@ -699,25 +699,27 @@
 
         .action-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
             margin-bottom: 24px;
         }
 
         .action-btn {
-            padding: 16px 0;
-            border-radius: 16px;
+            padding: 8px 2px;
+            border-radius: 10px;
             background: var(--card);
             border: none;
             color: var(--text);
-            font-size: 13px;
+            font-size: 9px;
             font-family: inherit;
             cursor: pointer;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 6px;
-            transition: background .15px;
+            gap: 4px;
+            transition: background .15s;
+            text-transform: uppercase;
+            letter-spacing: 0.2px;
         }
 
         .action-btn:active {
@@ -728,7 +730,7 @@
             background: #FF3B3010;
             border: 1px solid #FF3B3020;
             color: #FF3B30;
-            grid-column: span 2;
+            grid-column: span 4;
             margin-top: 4px;
         }
 
@@ -737,7 +739,7 @@
         }
 
         .action-icon {
-            font-size: 24px;
+            font-size: 16px;
         }
 
         #import-modal {
@@ -1208,18 +1210,6 @@
                 <button class="view-btn" onclick="setView('year',this)">Year</button>
                 <button class="view-btn" onclick="setView('all',this)">All</button>
             </div>
-            <div class="action-grid">
-                <button class="action-btn" onclick="exportJSON()"><span class="action-icon">📤</span>Export
-                    backup</button>
-                <button class="action-btn" onclick="openImport()"><span class="action-icon">📥</span>Import
-                    backup</button>
-                <button class="action-btn" onclick="exportTXT()"><span class="action-icon">📄</span>Export TXT</button>
-                <button class="action-btn" onclick="exportPDF()"><span class="action-icon">🖨️</span>Save PDF</button>
-                <button class="action-btn danger" onclick="eraseAllData()">
-                    <span class="action-icon">🗑️</span>Erase All Data
-                </button>
-            </div>
-
             <div id="weekly-breakdown-card" class="trend-card" style="display: none;"></div>
 
             <div class="slabel">By Category</div>
@@ -1260,6 +1250,17 @@
                 <button class="view-btn active" onclick="setView('month',this)">Month</button>
                 <button class="view-btn" onclick="setView('year',this)">Year</button>
                 <button class="view-btn" onclick="setView('all',this)">All</button>
+            </div>
+        </div>
+        <div style="padding:0 20px">
+            <div class="action-grid">
+                <button class="action-btn" onclick="exportJSON()"><span class="action-icon">📤</span>Backup</button>
+                <button class="action-btn" onclick="exportTXT()"><span class="action-icon">📄</span>TXT</button>
+                <button class="action-btn" onclick="exportPDF()"><span class="action-icon">🖨️</span>PDF</button>
+                <button class="action-btn" onclick="openImport()"><span class="action-icon">📥</span>Import</button>
+                <button class="action-btn danger" onclick="eraseAllData()">
+                    <span class="action-icon">🗑️</span>Erase Data
+                </button>
             </div>
         </div>
         <div id="history-list"></div>
@@ -1610,6 +1611,31 @@
                     value: `$${fmt(total / f.length)}`,
                     sub: "Per expense in this period",
                     color: "#5BC8C8"
+                });
+
+                // Daily Average
+                let daysCount = 1;
+                if (view === "all") {
+                    if (entries.length > 1) {
+                        const oldest = new Date(entries[entries.length - 1].date);
+                        const newest = new Date(entries[0].date);
+                        daysCount = Math.max(1, Math.ceil((newest - oldest) / (1000 * 60 * 60 * 24)));
+                    }
+                } else {
+                    const { start, end } = getPeriodBounds();
+                    const today = new Date();
+                    if (today >= start && today <= end) {
+                        daysCount = Math.max(1, Math.ceil((today - start) / (1000 * 60 * 60 * 24)));
+                    } else {
+                        daysCount = Math.max(1, Math.round((end - start) / (1000 * 60 * 60 * 24)));
+                    }
+                }
+
+                insights.push({
+                    title: "Daily Average",
+                    value: `$${fmt(total / daysCount)}`,
+                    sub: `Over ${daysCount} day${daysCount === 1 ? '' : 's'}`,
+                    color: "#F7C948"
                 });
 
                 const days = ["Sundays", "Mondays", "Tuesdays", "Wednesdays", "Thursdays", "Fridays", "Saturdays"];
