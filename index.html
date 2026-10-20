@@ -1021,25 +1021,61 @@
         }
 
         /* CHART (embedded in analysis) */
+        .chart-card {
+            background: var(--card);
+            border-radius: 18px;
+            padding: 16px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .chart-card-header {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .chart-title-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .chart-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+            letter-spacing: -0.2px;
+        }
+
+        .chart-inspect-val {
+            font-size: 12px;
+            color: #6DDC9A;
+            font-weight: 500;
+            min-height: 16px;
+            transition: color 0.15s ease;
+        }
+
         .chart-controls {
             display: flex;
             gap: 8px;
-            flex-wrap: wrap;
-            margin-bottom: 16px;
+            width: 100%;
         }
 
         .chart-seg {
             display: flex;
-            background: var(--card);
-            border-radius: 12px;
+            background: #141416;
+            border-radius: 10px;
             padding: 3px;
-            flex: 1;
+            width: 100%;
+            border: 1px solid rgba(255, 255, 255, 0.05);
         }
 
         .chart-seg-btn {
             flex: 1;
-            padding: 7px 0;
-            border-radius: 9px;
+            padding: 6px 0;
+            border-radius: 8px;
             background: transparent;
             color: var(--muted);
             font-size: 12px;
@@ -1047,19 +1083,22 @@
             border: none;
             cursor: pointer;
             font-family: inherit;
-            transition: all .15s;
+            transition: all .15s ease;
+            text-align: center;
         }
 
         .chart-seg-btn.active {
             background: var(--card2);
-            color: var(--text);
+            color: #FFF;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
         }
 
         .chart-legend {
             display: flex;
             flex-wrap: wrap;
-            gap: 8px;
-            margin-bottom: 14px;
+            gap: 10px;
+            margin-bottom: 12px;
+            padding: 2px 0;
         }
 
         .chart-legend-item {
@@ -1067,46 +1106,47 @@
             align-items: center;
             gap: 5px;
             font-size: 11px;
-            color: #888;
+            color: #999;
         }
 
         .chart-legend-dot {
             width: 8px;
             height: 8px;
-            border-radius: 2px;
+            border-radius: 50%;
             flex-shrink: 0;
         }
 
         .chart-canvas-wrap {
             position: relative;
-            height: 260px;
-            margin-bottom: 16px;
+            height: 230px;
+            margin-bottom: 12px;
         }
 
         .chart-summary {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 8px;
-            margin-bottom: 24px;
+            margin-top: 14px;
         }
 
         .chart-stat {
-            background: var(--card);
-            border-radius: 14px;
-            padding: 14px;
+            background: #151517;
+            border-radius: 12px;
+            padding: 10px 12px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
         }
 
         .chart-stat-label {
-            font-size: 11px;
+            font-size: 10px;
             color: var(--muted);
-            margin-bottom: 6px;
+            margin-bottom: 4px;
             letter-spacing: .5px;
             text-transform: uppercase;
         }
 
         .chart-stat-val {
-            font-size: 20px;
-            font-weight: 500;
+            font-size: 16px;
+            font-weight: 600;
         }
 
         @media print {
@@ -1218,21 +1258,30 @@
             <div id="insights-container" class="insights-grid"></div>
         </div>
         <div style="padding:0 20px">
-            <div class="slabel" id="chart-title-label">Spend Trends</div>
-            <div class="chart-controls">
-                <div class="chart-seg" id="type-seg">
-                    <button class="chart-seg-btn active" data-val="stacked"
-                        onclick="setChartType('stacked',this)">Stacked</button>
-                    <button class="chart-seg-btn" data-val="grouped"
-                        onclick="setChartType('grouped',this)">Grouped</button>
-                    <button class="chart-seg-btn" data-val="line" onclick="setChartType('line',this)">Line</button>
+            <div class="slabel">Spend Trends</div>
+            <div class="chart-card">
+                <div class="chart-card-header">
+                    <div class="chart-title-group">
+                        <div class="chart-title" id="chart-title-label">Spending Velocity</div>
+                        <div class="chart-inspect-val" id="chart-inspect-val">Tap or drag chart to inspect</div>
+                    </div>
+                    <div class="chart-controls">
+                        <div class="chart-seg" id="type-seg">
+                            <button class="chart-seg-btn active" data-val="trend"
+                                onclick="setChartType('trend',this)">Trend</button>
+                            <button class="chart-seg-btn" data-val="stacked"
+                                onclick="setChartType('stacked',this)">Category</button>
+                            <button class="chart-seg-btn" data-val="weekly" id="seg-weekly-btn"
+                                onclick="setChartType('weekly',this)">Weekly</button>
+                        </div>
+                    </div>
                 </div>
+                <div class="chart-legend" id="chart-legend"></div>
+                <div class="chart-canvas-wrap">
+                    <canvas id="spendChart"></canvas>
+                </div>
+                <div class="chart-summary" id="chart-summary"></div>
             </div>
-            <div class="chart-legend" id="chart-legend"></div>
-            <div class="chart-canvas-wrap">
-                <canvas id="spendChart"></canvas>
-            </div>
-            <div class="chart-summary" id="chart-summary"></div>
         </div>
     </div>
 
@@ -1353,7 +1402,7 @@
         ];
         const SK = "spndtrk_v5";
         let entries = [], digits = "", activeCat = "food", view = "month";
-        let chartType = "stacked", spendChart = null;
+        let chartType = "trend", spendChart = null;
         let activeDate = new Date(); // Master date tracking for views
 
         function load() { try { entries = JSON.parse(localStorage.getItem(SK) || "[]"); entries.sort((a, b) => new Date(b.date) - new Date(a.date)); } catch { entries = []; } }
@@ -1548,37 +1597,9 @@
             document.getElementById("total-display").textContent = "$" + fmt(total);
             document.getElementById("count-display").textContent = f.length + " transactions";
 
-            // Render Weekly Breakdown Card ONLY in Month View
+            // Redundant raw weekly breakdown replaced by rich interactive chart
             const weeklyCard = document.getElementById("weekly-breakdown-card");
-            if (view === "month") {
-                weeklyCard.style.display = "block";
-                const { start } = getPeriodBounds();
-                const firstDayOfMonth = start.getDay();
-                const weeksData = [0, 0, 0, 0, 0, 0];
-
-                f.forEach(e => {
-                    const d = new Date(e.date);
-                    const weekNum = Math.floor((d.getDate() + firstDayOfMonth - 1) / 7);
-                    if (weekNum >= 0 && weekNum < 6) weeksData[weekNum] += e.amount;
-                });
-
-                const maxWeekTotal = Math.max(...weeksData, 1);
-                let wHtml = `<div class="slabel">Spending By Week</div><div class="trend-bars">`;
-                weeksData.forEach((amt, i) => {
-                    if (amt > 0 || i < 4) {
-                        wHtml += `
-                        <div class="trend-col">
-                            <div style="font-size:9px;color:${amt > 0 ? '#EEE' : '#444'}">${amt > 0 ? `$${Math.round(amt)}` : ''}</div>
-                            <div style="width:100%;height:${Math.max(amt / maxWeekTotal * 100, 2)}%;background:var(--card2);border-radius:5px 5px 2px 2px;min-height:3px;transition:height .5s"></div>
-                            <div style="font-size:9px;color:#888">W${i + 1}</div>
-                        </div>`;
-                    }
-                });
-                wHtml += `</div>`;
-                weeklyCard.innerHTML = wHtml;
-            } else {
-                weeklyCard.style.display = "none";
-            }
+            if (weeklyCard) weeklyCard.style.display = "none";
 
             const bc = CATS.map(c => ({ ...c, sum: f.filter(e => e.category === c.id).reduce((s, e) => s + e.amount, 0) }))
                 .filter(c => c.sum > 0).sort((a, b) => b.sum - a.sum);
@@ -1731,61 +1752,121 @@
 
         function setChartType(val, btn) {
             chartType = val;
-            document.querySelectorAll("#type-seg .chart-seg-btn").forEach(b => b.classList.remove("active"));
-            btn.classList.add("active");
+            document.querySelectorAll("#type-seg .chart-seg-btn").forEach(b => {
+                b.classList.toggle("active", b.dataset.val === val);
+            });
             renderChart();
         }
 
         function renderChart() {
             const f = filtered();
-            let labels = [], datasets = [], title = "";
+            const weeklyBtn = document.getElementById("seg-weekly-btn");
+            if (weeklyBtn) {
+                weeklyBtn.style.display = (view === "month") ? "block" : "none";
+            }
+            if (view !== "month" && chartType === "weekly") {
+                chartType = "trend";
+                document.querySelectorAll("#type-seg .chart-seg-btn").forEach(b => {
+                    b.classList.toggle("active", b.dataset.val === "trend");
+                });
+            }
 
-            if (view === "month") {
-                title = "Daily Spend";
-                const { end } = getPeriodBounds();
-                const daysInMonth = end.getDate();
-                labels = Array.from({ length: daysInMonth }, (_, i) => (i + 1).toString());
+            let labels = [], datasets = [], title = "", totalData = [];
+            const { start, end } = getPeriodBounds();
 
+            if (chartType === "weekly" && view === "month") {
+                title = "Weekly Spend Breakdown";
+                const firstDayOfMonth = start.getDay();
+                labels = ["Week 1", "Week 2", "Week 3", "Week 4", "Week 5"];
                 datasets = CATS.map(c => ({
                     label: c.label,
                     color: c.color,
-                    data: Array.from({ length: daysInMonth }, () => 0)
+                    data: [0, 0, 0, 0, 0]
                 }));
 
                 f.forEach(e => {
                     const d = new Date(e.date);
-                    const dayIdx = d.getDate() - 1;
+                    const wIdx = Math.min(4, Math.floor((d.getDate() + firstDayOfMonth - 1) / 7));
                     const catIdx = CATS.findIndex(c => c.id === e.category);
-                    if (catIdx > -1) datasets[catIdx].data[dayIdx] += e.amount;
+                    if (catIdx > -1 && wIdx >= 0 && wIdx < 5) datasets[catIdx].data[wIdx] += e.amount;
                 });
+
+                const lastDay = end.getDate();
+                const totalWeeks = Math.floor((lastDay + firstDayOfMonth - 1) / 7) + 1;
+                if (totalWeeks < 5) {
+                    labels = labels.slice(0, totalWeeks);
+                    datasets.forEach(d => { d.data = d.data.slice(0, totalWeeks); });
+                }
+            } else if (view === "month") {
+                title = chartType === "trend" ? "Daily Spending Trend" : "Daily Category Breakdown";
+                const daysInMonth = end.getDate();
+                labels = Array.from({ length: daysInMonth }, (_, i) => (i + 1).toString());
+
+                if (chartType === "trend") {
+                    totalData = Array.from({ length: daysInMonth }, () => 0);
+                    f.forEach(e => {
+                        const dayIdx = new Date(e.date).getDate() - 1;
+                        if (dayIdx >= 0 && dayIdx < daysInMonth) totalData[dayIdx] += e.amount;
+                    });
+                } else {
+                    datasets = CATS.map(c => ({
+                        label: c.label,
+                        color: c.color,
+                        data: Array.from({ length: daysInMonth }, () => 0)
+                    }));
+                    f.forEach(e => {
+                        const dayIdx = new Date(e.date).getDate() - 1;
+                        const catIdx = CATS.findIndex(c => c.id === e.category);
+                        if (catIdx > -1 && dayIdx >= 0 && dayIdx < daysInMonth) datasets[catIdx].data[dayIdx] += e.amount;
+                    });
+                }
             } else if (view === "week") {
-                title = "Daily Spend";
+                title = chartType === "trend" ? "7-Day Spending Trend" : "Daily Category Breakdown";
                 labels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-                datasets = CATS.map(c => ({
-                    label: c.label, color: c.color,
-                    data: [0, 0, 0, 0, 0, 0, 0]
-                }));
-                f.forEach(e => {
-                    const dayIdx = new Date(e.date).getDay();
-                    const catIdx = CATS.findIndex(c => c.id === e.category);
-                    if (catIdx > -1) datasets[catIdx].data[dayIdx] += e.amount;
-                });
+
+                if (chartType === "trend") {
+                    totalData = [0, 0, 0, 0, 0, 0, 0];
+                    f.forEach(e => {
+                        totalData[new Date(e.date).getDay()] += e.amount;
+                    });
+                } else {
+                    datasets = CATS.map(c => ({
+                        label: c.label,
+                        color: c.color,
+                        data: [0, 0, 0, 0, 0, 0, 0]
+                    }));
+                    f.forEach(e => {
+                        const dayIdx = new Date(e.date).getDay();
+                        const catIdx = CATS.findIndex(c => c.id === e.category);
+                        if (catIdx > -1) datasets[catIdx].data[dayIdx] += e.amount;
+                    });
+                }
             } else if (view === "year") {
-                title = "Monthly Spend";
+                title = chartType === "trend" ? "Monthly Spending Trend" : "Monthly Category Breakdown";
                 labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-                datasets = CATS.map(c => ({
-                    label: c.label, color: c.color,
-                    data: Array.from({ length: 12 }, () => 0)
-                }));
-                f.forEach(e => {
-                    const monthIdx = new Date(e.date).getMonth();
-                    const catIdx = CATS.findIndex(c => c.id === e.category);
-                    if (catIdx > -1) datasets[catIdx].data[monthIdx] += e.amount;
-                });
+
+                if (chartType === "trend") {
+                    totalData = Array.from({ length: 12 }, () => 0);
+                    f.forEach(e => {
+                        totalData[new Date(e.date).getMonth()] += e.amount;
+                    });
+                } else {
+                    datasets = CATS.map(c => ({
+                        label: c.label,
+                        color: c.color,
+                        data: Array.from({ length: 12 }, () => 0)
+                    }));
+                    f.forEach(e => {
+                        const mIdx = new Date(e.date).getMonth();
+                        const catIdx = CATS.findIndex(c => c.id === e.category);
+                        if (catIdx > -1) datasets[catIdx].data[mIdx] += e.amount;
+                    });
+                }
             } else {
-                title = "Monthly Spend (All Time)";
+                title = chartType === "trend" ? "Spending Trend (All Time)" : "Monthly Category Breakdown (All Time)";
                 if (!entries.length) {
                     labels = [new Date().toLocaleString('default', { month: 'short', year: '2-digit' })];
+                    totalData = [0];
                     datasets = CATS.map(c => ({ label: c.label, color: c.color, data: [0] }));
                 } else {
                     const dates = entries.map(e => new Date(e.date));
@@ -1802,76 +1883,191 @@
                         d.setMonth(d.getMonth() + 1);
                     }
 
-                    datasets = CATS.map(c => ({ label: c.label, color: c.color, data: Array.from({ length: labels.length }, () => 0) }));
-                    entries.forEach(e => {
-                        const mKey = mk(new Date(e.date));
-                        if (monthsMap[mKey] !== undefined) {
-                            const catIdx = CATS.findIndex(c => c.id === e.category);
-                            if (catIdx > -1) datasets[catIdx].data[monthsMap[mKey]] += e.amount;
-                        }
-                    });
+                    if (chartType === "trend") {
+                        totalData = Array.from({ length: labels.length }, () => 0);
+                        entries.forEach(e => {
+                            const mKey = mk(new Date(e.date));
+                            if (monthsMap[mKey] !== undefined) totalData[monthsMap[mKey]] += e.amount;
+                        });
+                    } else {
+                        datasets = CATS.map(c => ({ label: c.label, color: c.color, data: Array.from({ length: labels.length }, () => 0) }));
+                        entries.forEach(e => {
+                            const mKey = mk(new Date(e.date));
+                            if (monthsMap[mKey] !== undefined) {
+                                const catIdx = CATS.findIndex(c => c.id === e.category);
+                                if (catIdx > -1) datasets[catIdx].data[monthsMap[mKey]] += e.amount;
+                            }
+                        });
+                    }
                 }
             }
 
             document.getElementById('chart-title-label').textContent = title;
 
-            const chartDatasets = datasets.map(d => ({
-                label: d.label,
-                data: d.data,
-                backgroundColor: d.color + (chartType === "line" ? "44" : "cc"),
-                borderColor: d.color,
-                borderWidth: chartType === "line" ? 2 : 0,
-                fill: false,
-                tension: 0.35,
-                pointRadius: chartType === "line" ? 4 : 0,
-                pointBackgroundColor: d.color,
-            }));
-
-            const usedCats = datasets.filter(d => d.data.some(v => v > 0));
-            document.getElementById("chart-legend").innerHTML = usedCats.map(c =>
-                `<div class="chart-legend-item"><div class="chart-legend-dot" style="background:${c.color}"></div>${c.label}</div>`
-            ).join("");
-
-            const totals = datasets.map((d, i) => ({ label: d.label, color: d.color, icon: CATS[i].icon, total: d.data.reduce((s, v) => s + v, 0) }))
-                .filter(x => x.total > 0).sort((a, b) => b.total - a.total);
-            const grandTotal = totals.reduce((s, t) => s + t.total, 0);
-            document.getElementById("chart-summary").innerHTML = totals.slice(0, 4).map(t =>
-                `<div class="chart-stat">
-      <div class="chart-stat-label">${t.icon} ${t.label}</div>
-      <div class="chart-stat-val" style="color:${t.color}">$${fmt(t.total)}</div>
-    </div>`
-            ).join("") + (grandTotal > 0 ? `<div class="chart-stat" style="grid-column:1/-1;background:#1a1a1a">
-    <div class="chart-stat-label">Total</div>
-    <div class="chart-stat-val">$${fmt(grandTotal)}</div>
-  </div>`: "");
+            // Compute default summary info for inspect banner
+            const inspectEl = document.getElementById("chart-inspect-val");
+            let defaultSummary = "Tap or scrub chart to inspect";
+            if (chartType === "trend") {
+                const maxVal = Math.max(...totalData, 0);
+                const maxIdx = totalData.indexOf(maxVal);
+                const totalSum = totalData.reduce((s, v) => s + v, 0);
+                const activeSlots = totalData.filter(v => v > 0).length || 1;
+                if (maxVal > 0) {
+                    const peakLabel = (view === "month") ? `Day ${labels[maxIdx]}` : labels[maxIdx];
+                    defaultSummary = `Peak: ${peakLabel} ($${fmt(maxVal)}) • Avg: $${fmt(totalSum / activeSlots)}`;
+                } else {
+                    defaultSummary = "No spending recorded in this period";
+                }
+            } else {
+                const slotTotals = labels.map((_, i) => datasets.reduce((s, d) => s + (d.data[i] || 0), 0));
+                const maxVal = Math.max(...slotTotals, 0);
+                const maxIdx = slotTotals.indexOf(maxVal);
+                if (maxVal > 0) {
+                    const peakLabel = (view === "month" && chartType !== "weekly") ? `Day ${labels[maxIdx]}` : labels[maxIdx];
+                    defaultSummary = `Highest: ${peakLabel} ($${fmt(maxVal)})`;
+                } else {
+                    defaultSummary = "No spending recorded in this period";
+                }
+            }
+            if (inspectEl) inspectEl.textContent = defaultSummary;
 
             if (spendChart) spendChart.destroy();
-            const ctx = document.getElementById("spendChart").getContext("2d");
+            const canvas = document.getElementById("spendChart");
+            const ctx = canvas.getContext("2d");
+
+            let chartDatasets = [];
+            if (chartType === "trend") {
+                const gradient = ctx.createLinearGradient(0, 0, 0, 220);
+                gradient.addColorStop(0, "rgba(109, 220, 154, 0.35)");
+                gradient.addColorStop(1, "rgba(109, 220, 154, 0.0)");
+
+                chartDatasets = [{
+                    label: "Total Spent",
+                    data: totalData,
+                    borderColor: "#6DDC9A",
+                    borderWidth: 2.5,
+                    backgroundColor: gradient,
+                    fill: true,
+                    tension: 0.35,
+                    pointRadius: labels.length > 15 ? 0 : 3.5,
+                    pointHoverRadius: 6,
+                    pointBackgroundColor: "#6DDC9A",
+                    pointBorderColor: "#0F0F10",
+                    pointBorderWidth: 2,
+                }];
+                document.getElementById("chart-legend").innerHTML = "";
+            } else {
+                chartDatasets = datasets.map(d => ({
+                    label: d.label,
+                    data: d.data,
+                    backgroundColor: d.color,
+                    borderRadius: 4,
+                    borderSkipped: false,
+                    maxBarThickness: chartType === "weekly" ? 36 : (labels.length > 20 ? 12 : 24),
+                }));
+
+                const usedCats = datasets.filter(d => d.data.some(v => v > 0));
+                document.getElementById("chart-legend").innerHTML = usedCats.map(c =>
+                    `<div class="chart-legend-item"><div class="chart-legend-dot" style="background:${c.color}"></div>${c.label}</div>`
+                ).join("");
+            }
+
+            // Summary grid below chart
+            const catTotals = CATS.map(c => ({
+                label: c.label,
+                color: c.color,
+                icon: c.icon,
+                total: f.filter(e => e.category === c.id).reduce((s, e) => s + e.amount, 0)
+            })).filter(x => x.total > 0).sort((a, b) => b.total - a.total);
+
+            const grandTotal = catTotals.reduce((s, t) => s + t.total, 0);
+            document.getElementById("chart-summary").innerHTML = catTotals.slice(0, 4).map(t =>
+                `<div class="chart-stat">
+                    <div class="chart-stat-label">${t.icon} ${t.label}</div>
+                    <div class="chart-stat-val" style="color:${t.color}">$${fmt(t.total)}</div>
+                </div>`
+            ).join("") + (grandTotal > 0 ? `<div class="chart-stat" style="grid-column:1/-1;background:#151517">
+                <div class="chart-stat-label">Total Period Spend</div>
+                <div class="chart-stat-val">$${fmt(grandTotal)}</div>
+            </div>`: "");
+
             spendChart = new Chart(ctx, {
-                type: chartType === "line" ? "line" : "bar",
+                type: chartType === "trend" ? "line" : "bar",
                 data: { labels, datasets: chartDatasets },
                 options: {
-                    responsive: true, maintainAspectRatio: false,
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: "index",
+                        intersect: false,
+                    },
                     plugins: {
-                        legend: { display: false }, tooltip: {
-                            backgroundColor: "#1C1C1E", borderColor: "#333", borderWidth: 1, titleColor: "#EEEAE4", bodyColor: "#888",
+                        legend: { display: false },
+                        tooltip: {
+                            enabled: true,
+                            backgroundColor: "rgba(24, 24, 27, 0.95)",
+                            borderColor: "rgba(255, 255, 255, 0.12)",
+                            borderWidth: 1,
+                            titleColor: "#EEEAE4",
+                            bodyColor: "#BBB",
+                            padding: 10,
+                            cornerRadius: 10,
+                            boxPadding: 4,
                             callbacks: {
-                                label: ctx => ctx.parsed.y > 0 ? ` ${ctx.dataset.label}: $${fmt(ctx.parsed.y)}` : null,
-                                footer: items => { const t = items.reduce((s, i) => s + i.parsed.y, 0); return t > 0 ? `Total: $${fmt(t)}` : ""; },
+                                title: function(items) {
+                                    if (!items.length) return "";
+                                    const lbl = items[0].label;
+                                    let formattedTitle = lbl;
+                                    if (view === "month") {
+                                        if (chartType === "weekly") formattedTitle = lbl;
+                                        else formattedTitle = `Day ${lbl} of ${ml(mk(activeDate))}`;
+                                    } else if (view === "week") {
+                                        formattedTitle = `${lbl}`;
+                                    } else if (view === "year") {
+                                        formattedTitle = `${lbl} ${activeDate.getFullYear()}`;
+                                    }
+                                    const t = items.reduce((s, i) => s + (i.parsed.y || 0), 0);
+                                    if (inspectEl) inspectEl.textContent = `📅 ${formattedTitle} • $${fmt(t)}`;
+                                    return formattedTitle;
+                                },
+                                label: function(ctx) {
+                                    const val = ctx.parsed.y;
+                                    if (val <= 0) return null;
+                                    return ` ${ctx.dataset.label}: $${fmt(val)}`;
+                                },
+                                footer: function(items) {
+                                    if (chartType === "trend") return "";
+                                    const t = items.reduce((s, i) => s + (i.parsed.y || 0), 0);
+                                    return t > 0 ? `Total: $${fmt(t)}` : "";
+                                }
                             },
                             filter: item => item.parsed.y > 0
                         }
                     },
                     scales: {
                         x: {
-                            stacked: chartType === "stacked",
-                            ticks: { color: "#555", font: { size: 10 }, autoSkip: labels.length > 10, maxRotation: 0 },
-                            grid: { display: false }, border: { color: "#242428" }
+                            stacked: chartType !== "trend",
+                            ticks: {
+                                color: "#666",
+                                font: { size: 10 },
+                                autoSkip: true,
+                                maxTicksLimit: (view === "month" && chartType !== "weekly") ? 8 : 12,
+                                maxRotation: 0
+                            },
+                            grid: { display: false },
+                            border: { color: "rgba(255, 255, 255, 0.08)" }
                         },
                         y: {
-                            stacked: chartType === "stacked",
-                            ticks: { color: "#555", font: { size: 10 }, callback: v => v >= 1000 ? "$" + (v / 1000).toFixed(0) + "k" : "$" + v },
-                            grid: { color: "#1a1a1a" }, border: { color: "#242428" }
+                            stacked: chartType !== "trend",
+                            beginAtZero: true,
+                            ticks: {
+                                color: "#666",
+                                font: { size: 10 },
+                                maxTicksLimit: 5,
+                                callback: v => v >= 1000 ? "$" + (v / 1000).toFixed(1) + "k" : "$" + v
+                            },
+                            grid: { color: "rgba(255, 255, 255, 0.04)" },
+                            border: { display: false }
                         }
                     }
                 }
