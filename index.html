@@ -1149,6 +1149,101 @@
             font-weight: 600;
         }
 
+        /* DONUT CARD */
+        .donut-card {
+            background: var(--card);
+            border-radius: 18px;
+            padding: 18px 16px;
+            margin-bottom: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .donut-wrap {
+            position: relative;
+            width: 190px;
+            height: 190px;
+            margin: 0 auto;
+        }
+
+        .donut-center-info {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 125px;
+        }
+
+        .donut-center-sub {
+            font-size: 11px;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 115px;
+        }
+
+        .donut-center-val {
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--text);
+            margin-top: 2px;
+            white-space: nowrap;
+        }
+
+        /* HISTORY SEARCH */
+        .search-box {
+            position: relative;
+            display: flex;
+            align-items: center;
+            background: var(--card);
+            border-radius: 12px;
+            padding: 0 12px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            margin-bottom: 12px;
+        }
+
+        .search-icon {
+            font-size: 13px;
+            color: var(--muted);
+            margin-right: 8px;
+        }
+
+        .search-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--text);
+            font-family: inherit;
+            font-size: 13px;
+            padding: 11px 0;
+            outline: none;
+        }
+
+        .search-input::placeholder {
+            color: #666;
+        }
+
+        .search-clear {
+            background: none;
+            border: none;
+            color: var(--muted);
+            font-size: 14px;
+            cursor: pointer;
+            padding: 4px;
+            display: none;
+        }
+
         @media print {
             body {
                 background: #fff;
@@ -1253,6 +1348,15 @@
             <div id="weekly-breakdown-card" class="trend-card" style="display: none;"></div>
 
             <div class="slabel">By Category</div>
+            <div id="donut-card" class="donut-card" style="display: none;">
+                <div class="donut-wrap">
+                    <canvas id="categoryDonut"></canvas>
+                    <div class="donut-center-info">
+                        <div class="donut-center-sub" id="donut-center-label">Total</div>
+                        <div class="donut-center-val" id="donut-center-val">$0.00</div>
+                    </div>
+                </div>
+            </div>
             <div id="cat-breakdown"></div>
             <div class="slabel">Insights</div>
             <div id="insights-container" class="insights-grid"></div>
@@ -1310,6 +1414,11 @@
                 <button class="action-btn danger" onclick="eraseAllData()">
                     <span class="action-icon">🗑️</span>Erase Data
                 </button>
+            </div>
+            <div class="search-box">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="history-search" class="search-input" placeholder="Search note, category, or amount..." oninput="onHistorySearch(this.value)">
+                <button id="search-clear-btn" class="search-clear" onclick="clearHistorySearch()">✕</button>
             </div>
         </div>
         <div id="history-list"></div>
@@ -1402,8 +1511,12 @@
         ];
         const SK = "spndtrk_v5";
         let entries = [], digits = "", activeCat = "food", view = "month";
-        let chartType = "trend", spendChart = null;
+        let chartType = "trend", spendChart = null, catDonut = null;
         let activeDate = new Date(); // Master date tracking for views
+
+        function haptic(ms = 8) {
+            try { if (navigator.vibrate) navigator.vibrate(ms); } catch (e) { }
+        }
 
         function load() { try { entries = JSON.parse(localStorage.getItem(SK) || "[]"); entries.sort((a, b) => new Date(b.date) - new Date(a.date)); } catch { entries = []; } }
         function save() { try { localStorage.setItem(SK, JSON.stringify(entries)); } catch { } }
@@ -1437,6 +1550,7 @@
       onclick="selectCat('${c.id}')">${c.icon} ${c.label}</button>`).join("");
         }
         function selectCat(id) {
+            haptic(10);
             activeCat = id; renderCats();
             const c = cat(id);
             document.getElementById("amt-label").textContent = `${c.icon} ${c.label}`;
@@ -1444,9 +1558,9 @@
             document.getElementById("add-btn").style.background = c.color;
         }
 
-        function pd(d) { digits = (digits + d).slice(0, 8); upd(); }
-        function pb() { digits = digits.slice(0, -1); upd(); }
-        function pc() { digits = ""; upd(); }
+        function pd(d) { haptic(8); digits = (digits + d).slice(0, 8); upd(); }
+        function pb() { haptic(10); digits = digits.slice(0, -1); upd(); }
+        function pc() { haptic(12); digits = ""; upd(); }
         function upd() {
             const a = amt(), c = cat(activeCat);
             document.getElementById("amt-value").textContent = "$" + fmt(a);
@@ -1505,6 +1619,7 @@
         function addEntry() {
             const a = amt();
             if (a <= 0) { toast("Enter an amount", "#FF6B6B"); return; }
+            haptic([15, 60, 25]);
             const entryDate = calSelected ? new Date(calSelected + 'T12:00:00').toISOString() : new Date().toISOString();
             entries.unshift({ id: Date.now(), amount: a, category: activeCat, note: currentNote, date: entryDate });
             save(); digits = ""; upd(); currentNote = "";
@@ -1603,6 +1718,73 @@
 
             const bc = CATS.map(c => ({ ...c, sum: f.filter(e => e.category === c.id).reduce((s, e) => s + e.amount, 0) }))
                 .filter(c => c.sum > 0).sort((a, b) => b.sum - a.sum);
+
+            // Render Category Donut Chart
+            const donutCard = document.getElementById("donut-card");
+            if (bc.length > 0) {
+                if (donutCard) donutCard.style.display = "flex";
+                const donutLabels = bc.map(c => `${c.icon} ${c.label}`);
+                const donutData = bc.map(c => c.sum);
+                const donutColors = bc.map(c => c.color);
+
+                const centerSub = document.getElementById("donut-center-label");
+                const centerVal = document.getElementById("donut-center-val");
+                if (centerSub) centerSub.textContent = "Total";
+                if (centerVal) centerVal.textContent = "$" + fmt(total);
+
+                if (catDonut) catDonut.destroy();
+                const dctx = document.getElementById("categoryDonut").getContext("2d");
+                catDonut = new Chart(dctx, {
+                    type: "doughnut",
+                    data: {
+                        labels: donutLabels,
+                        datasets: [{
+                            data: donutData,
+                            backgroundColor: donutColors,
+                            borderColor: "#1C1C1E",
+                            borderWidth: 2,
+                            hoverOffset: 6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: "74%",
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                enabled: true,
+                                backgroundColor: "rgba(24, 24, 27, 0.95)",
+                                borderColor: "rgba(255, 255, 255, 0.12)",
+                                borderWidth: 1,
+                                titleColor: "#EEEAE4",
+                                bodyColor: "#BBB",
+                                padding: 8,
+                                cornerRadius: 8,
+                                callbacks: {
+                                    label: function (ctx) {
+                                        const val = ctx.parsed;
+                                        const pct = total > 0 ? Math.round(val / total * 100) : 0;
+                                        if (centerSub) centerSub.textContent = ctx.label;
+                                        if (centerVal) centerVal.textContent = `$${fmt(val)} (${pct}%)`;
+                                        return ` $${fmt(val)} (${pct}%)`;
+                                    }
+                                }
+                            }
+                        },
+                        onHover: (e, active) => {
+                            if (!active.length) {
+                                if (centerSub) centerSub.textContent = "Total";
+                                if (centerVal) centerVal.textContent = "$" + fmt(total);
+                            }
+                        }
+                    }
+                });
+            } else {
+                if (donutCard) donutCard.style.display = "none";
+                if (catDonut) { catDonut.destroy(); catDonut = null; }
+            }
+
             document.getElementById("cat-breakdown").innerHTML = bc.length ? bc.map(c => {
                 const p = total > 0 ? c.sum / total * 100 : 0;
                 return `<button class="cat-row" onclick="openCatDetail('${c.id}')">
@@ -1717,10 +1899,38 @@
             `).join("");
         }
 
+        let historySearch = "";
+        function onHistorySearch(val) {
+            historySearch = (val || "").trim().toLowerCase();
+            const clearBtn = document.getElementById("search-clear-btn");
+            if (clearBtn) clearBtn.style.display = historySearch ? "block" : "none";
+            renderHistory();
+        }
+        function clearHistorySearch() {
+            const input = document.getElementById("history-search");
+            if (input) input.value = "";
+            onHistorySearch("");
+        }
+
         function renderHistory() {
             updateHeaders();
-            const f = filtered(), el = document.getElementById("history-list");
-            if (!f.length) { el.innerHTML = `<div class="empty">No entries<br>Start adding in the ＋ tab</div>`; return; }
+            let f = filtered();
+            if (historySearch) {
+                f = f.filter(e => {
+                    const c = cat(e.category);
+                    const noteMatch = (e.note || "").toLowerCase().includes(historySearch);
+                    const catMatch = c.label.toLowerCase().includes(historySearch) || c.id.toLowerCase().includes(historySearch);
+                    const amtMatch = e.amount.toString().includes(historySearch) || fmt(e.amount).includes(historySearch);
+                    return noteMatch || catMatch || amtMatch;
+                });
+            }
+            const el = document.getElementById("history-list");
+            if (!f.length) {
+                el.innerHTML = historySearch
+                    ? `<div class="empty">No entries matching "${historySearch}"</div>`
+                    : `<div class="empty">No entries<br>Start adding in the ＋ tab</div>`;
+                return;
+            }
             el.innerHTML = f.map(e => {
                 const c = cat(e.category);
                 const d = new Date(e.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
